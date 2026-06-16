@@ -1,0 +1,82 @@
+const db = require('../config/db');
+const auth = require('../middleware/auth');
+const role = require('../middleware/role');
+
+const router = require('express').Router();
+router.use(auth);
+
+/** 换班列表 */
+router.get('/swaps', role('owner', 'manager'), async (req, res) => {
+  const swaps = await db('shift_swaps')
+    .join('shifts', 'shift_swaps.shift_id', 'shifts.id')
+    .join('employees as requester', 'shift_swaps.requester_id', 'requester.id')
+    .leftJoin('employees as target', 'shift_swaps.target_employee_id', 'target.id')
+    .where('shifts.restaurant_id', req.restaurantId)
+    .select('shift_swaps.*', 'shifts.date', 'shifts.start_time', 'shifts.end_time', 'shifts.area',
+      'requester.name as requester_name', 'target.name as target_name')
+    .orderBy('shift_swaps.created_at', 'desc');
+  res.json(swaps);
+});
+
+/** 发起换班 */
+router.post('/swaps', role('owner', 'manager', 'employee'), async (req, res) => {
+  const { shift_id, target_employee_id, reason } = req.body;
+  const shift = await db('shifts').where({ id: shift_id }).first();
+  if (!shift) return res.status(404).json({ error: '班次不存在' });
+
+  const [id] = await db('shift_swaps').insert({
+    shift_id, requester_id: req.user.id,
+    target_employee_id: target_employee_id || null, reason,
+  });
+  res.status(201).json({ id });
+});
+
+/** 审批换班 */
+router.put('/swaps/:id/approve', role('owner', 'manager'), async (req, res) => {
+  const swap = await db('shift_swaps').where({ id: req.params.id }).first();
+  if (!swap) return res.status(404).json({ error: '申请不存在' });
+
+  await db('shift_swaps').where({ id: req.params.id }).update({ status: 'approved', approver_id: req.user.id, updated_at: db.fn.now() });
+  // 更新班次：换给目标员工
+  if (swap.target_employee_id) {
+    await db('shifts').where({ id: swap.shift_id }).update({ employee_id: swap.target_employee_id, status: 'swapped', updated_at: db.fn.now() });
+  }
+  res.json({ ok: true });
+});
+
+router.put('/swaps/:id/reject', role('owner', 'manager'), async (req, res) => {
+  await db('shift_swaps').where({ id: req.params.id }).update({ status: 'rejected', approver_id: req.user.id, updated_at: db.fn.now() });
+  res.json({ ok: true });
+});
+
+/** 请假列表 */
+router.get('/leaves', role('owner', 'manager'), async (req, res) => {
+  const leaves = await db('leave_requests')
+    .join('employees', 'leave_requests.employee_id', 'employees.id')
+    .where('employees.restaurant_id', req.restaurantId)
+    .select('leave_requests.*', 'employees.name as employee_name')
+    .orderBy('leave_requests.created_at', 'desc');
+  res.json(leaves);
+});
+
+/** 发起请假 */
+router.post('/leaves', role('owner', 'manager', 'employee'), async (req, res) => {
+  const { start_date, end_date, reason, type } = req.body;
+  const [id] = await db('leave_requests').insert({
+    employee_id: req.user.id, start_date, end_date, reason, type: type || 'unpaid',
+  });
+  res.status(201).json({ id });
+});
+
+/** 审批请假 */
+router.put('/leaves/:id/approve', role('owner', 'manager'), async (req, res) => {
+  await db('leave_requests').where({ id: req.params.id }).update({ status: 'approved', approver_id: req.user.id, updated_at: db.fn.now() });
+  res.json({ ok: true });
+});
+
+router.put('/leaves/:id/reject', role('owner', 'manager'), async (req, res) => {
+  await db('leave_requests').where({ id: req.params.id }).update({ status: 'rejected', approver_id: req.user.id, updated_at: db.fn.now() });
+  res.json({ ok: true });
+});
+
+module.exports = router;
