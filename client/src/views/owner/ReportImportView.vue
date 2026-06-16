@@ -11,13 +11,15 @@
           <n-form-item :label="t('report.notes')"><n-input v-model:value="form.notes" type="textarea" /></n-form-item>
 
           <n-divider>{{ t('report.expenses') }}</n-divider>
-          <n-form-item v-for="(exp, i) in form.expenses" :key="i" :label="exp.category">
+          <n-form-item v-for="(exp, i) in form.expenses" :key="i" :label="t('report.expenses')">
             <n-space>
-              <n-input-number v-model:value="exp.amount" :min="0" :step="0.01" style="width: 140px" />
+              <n-select v-model:value="exp.category" :options="expenseCategoryOptions" style="width: 110px" size="small" />
+              <n-input v-if="exp.category === 'other'" v-model:value="exp.customName" placeholder="自定义" :maxlength="20" style="width: 100px" size="small" />
+              <n-input-number v-model:value="exp.amount" :min="0" :step="0.01" style="width: 140px" size="small" />
               <n-button size="small" @click="form.expenses.splice(i, 1)">×</n-button>
             </n-space>
           </n-form-item>
-          <n-button size="small" @click="form.expenses.push({ category: 'food', amount: 0 })">+ 添加支出</n-button>
+          <n-button size="small" @click="form.expenses.push({ category: 'food', amount: 0, customName: '' })">+ 添加支出</n-button>
 
           <n-form-item style="margin-top: 20px">
             <n-button type="primary" :loading="saving" @click="submitManual">{{ t('common.save') }}</n-button>
@@ -50,8 +52,16 @@ const saving = ref(false);
 const form = ref({
   date: new Date().getTime(),
   total_revenue: 0, total_cash: 0, total_card: 0, notes: '',
-  expenses: [{ category: 'food', amount: 0 }],
+  expenses: [{ category: 'food', amount: 0, customName: '' }],
 });
+
+const expenseCategoryOptions = [
+  { label: '食材', value: 'food' },
+  { label: '饮料', value: 'beverage' },
+  { label: '房租', value: 'rent' },
+  { label: '水电', value: 'utilities' },
+  { label: '其他', value: 'other' },
+];
 
 async function submitManual() {
   saving.value = true;
@@ -59,7 +69,10 @@ async function submitManual() {
     const d = form.value.date ? new Date(form.value.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
     await reportsAPI.posCreate({ date: d, total_revenue: form.value.total_revenue, total_cash: form.value.total_cash, total_card: form.value.total_card, notes: form.value.notes });
     for (const exp of form.value.expenses) {
-      if (exp.amount > 0) await expensesAPI.create({ date: d, category: exp.category, amount: exp.amount });
+      if (exp.amount > 0) {
+        const desc = exp.category === 'other' && exp.customName ? exp.customName : undefined;
+        await expensesAPI.create({ date: d, category: exp.category, amount: exp.amount, description: desc });
+      }
     }
     message.success(t('report.import_success'));
   } catch (err) {

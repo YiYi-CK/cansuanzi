@@ -16,7 +16,7 @@
       </n-list-item>
     </n-list>
 
-    <n-modal v-model:show="showSwap" :title="t('approvals.request_swap')" style="width: 400px">
+    <n-modal preset="card" v-model:show="showSwap" :title="t('approvals.request_swap')" style="width: 400px">
       <n-form :model="swapForm">
         <n-form-item label="班次">
           <n-select v-model:value="swapForm.shift_id" :options="shiftOptions" />
@@ -33,7 +33,7 @@
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showLeave" :title="t('approvals.request_leave')" style="width: 400px">
+    <n-modal preset="card" v-model:show="showLeave" :title="t('approvals.request_leave')" style="width: 400px">
       <n-form :model="leaveForm">
         <n-form-item label="日期">
           <n-date-picker v-model:value="leaveForm.dates" type="daterange" />

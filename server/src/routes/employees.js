@@ -10,14 +10,14 @@ router.use(auth);
 router.get('/', role('owner', 'manager'), async (req, res) => {
   const rows = await db('employees')
     .where({ restaurant_id: req.restaurantId })
-    .select('id', 'name', 'email', 'phone', 'role', 'employment_type', 'base_hourly_rate', 'active');
+    .select('id', 'name', 'email', 'phone', 'role', 'employment_type', 'base_hourly_rate', 'active', 'position', 'station_ids');
   res.json(rows);
 });
 
 /** 新增员工 */
 router.post('/', role('owner', 'manager'), async (req, res) => {
   try {
-    const { name, email, password, phone, employment_type, base_hourly_rate, ...loadings } = req.body;
+    const { name, email, password, phone, employment_type, base_hourly_rate, position, station_ids, ...loadings } = req.body;
     if (!name) return res.status(400).json({ error: '姓名为必填' });
 
     let password_hash = null;
@@ -37,6 +37,8 @@ router.post('/', role('owner', 'manager'), async (req, res) => {
       public_holiday_loading: loadings.public_holiday_loading || 2.50,
       late_night_loading: loadings.late_night_loading || 1.50,
       casual_loading: loadings.casual_loading || 0.25,
+      position: position || '',
+      station_ids: station_ids ? JSON.stringify(station_ids) : null,
       role: 'employee',
     });
     res.status(201).json({ id });
@@ -56,7 +58,7 @@ router.get('/:id', role('owner', 'manager'), async (req, res) => {
 
 /** 更新员工 */
 router.put('/:id', role('owner', 'manager'), async (req, res) => {
-  const { name, email, phone, employment_type, base_hourly_rate, active, ...loadings } = req.body;
+  const { name, email, phone, employment_type, base_hourly_rate, active, position, station_ids, password, ...loadings } = req.body;
   const updates = {};
   if (name !== undefined) updates.name = name;
   if (email !== undefined) updates.email = email;
@@ -64,6 +66,9 @@ router.put('/:id', role('owner', 'manager'), async (req, res) => {
   if (employment_type !== undefined) updates.employment_type = employment_type;
   if (base_hourly_rate !== undefined) updates.base_hourly_rate = base_hourly_rate;
   if (active !== undefined) updates.active = active;
+  if (position !== undefined) updates.position = position;
+  if (station_ids !== undefined) updates.station_ids = station_ids ? JSON.stringify(station_ids) : null;
+  if (password) updates.password_hash = await bcrypt.hash(password, 10);
   for (const k of ['saturday_loading', 'sunday_loading', 'public_holiday_loading', 'late_night_loading', 'casual_loading']) {
     if (loadings[k] !== undefined) updates[k] = loadings[k];
   }

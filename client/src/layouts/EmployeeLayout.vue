@@ -26,7 +26,7 @@ import { computed, h } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { NIcon } from 'naive-ui';
-import { useAuthStore } from '../../store/auth';
+import { useAuthStore } from '../store/auth';
 import {
   RestaurantOutline, MoonOutline, SunnyOutline,
   CalendarOutline, DocumentTextOutline, PersonOutline,

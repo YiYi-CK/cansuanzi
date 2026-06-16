@@ -21,11 +21,6 @@ export const shiftsAPI = {
   create: (data) => client.post('/shifts', data),
   update: (id, data) => client.put(`/shifts/${id}`, data),
   remove: (id) => client.delete(`/shifts/${id}`),
-  applyTemplate: (templateId, weekStart) => client.post('/shifts/apply-template', { templateId, weekStart }),
-  templates: () => client.get('/shifts/templates'),
-  createTemplate: (data) => client.post('/shifts/templates', data),
-  updateTemplate: (id, data) => client.put(`/shifts/templates/${id}`, data),
-  removeTemplate: (id) => client.delete(`/shifts/templates/${id}`),
 };
 
 export const approvalsAPI = {
@@ -33,10 +28,12 @@ export const approvalsAPI = {
   createSwap: (data) => client.post('/approvals/swaps', data),
   approveSwap: (id) => client.put(`/approvals/swaps/${id}/approve`),
   rejectSwap: (id) => client.put(`/approvals/swaps/${id}/reject`),
+  undoSwap: (id) => client.put(`/approvals/swaps/${id}/undo`),
   leaves: () => client.get('/approvals/leaves'),
   createLeave: (data) => client.post('/approvals/leaves', data),
   approveLeave: (id) => client.put(`/approvals/leaves/${id}/approve`),
   rejectLeave: (id) => client.put(`/approvals/leaves/${id}/reject`),
+  undoLeave: (id) => client.put(`/approvals/leaves/${id}/undo`),
 };
 
 export const reportsAPI = {

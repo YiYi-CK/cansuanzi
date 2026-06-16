@@ -11,9 +11,10 @@ router.get('/swaps', role('owner', 'manager'), async (req, res) => {
     .join('shifts', 'shift_swaps.shift_id', 'shifts.id')
     .join('employees as requester', 'shift_swaps.requester_id', 'requester.id')
     .leftJoin('employees as target', 'shift_swaps.target_employee_id', 'target.id')
+    .leftJoin('employees as approver', 'shift_swaps.approver_id', 'approver.id')
     .where('shifts.restaurant_id', req.restaurantId)
     .select('shift_swaps.*', 'shifts.date', 'shifts.start_time', 'shifts.end_time', 'shifts.area',
-      'requester.name as requester_name', 'target.name as target_name')
+      'requester.name as requester_name', 'target.name as target_name', 'approver.name as approver_name')
     .orderBy('shift_swaps.created_at', 'desc');
   res.json(swaps);
 });
@@ -44,6 +45,15 @@ router.put('/swaps/:id/approve', role('owner', 'manager'), async (req, res) => {
   res.json({ ok: true });
 });
 
+router.put('/swaps/:id/undo', role('owner', 'manager'), async (req, res) => {
+  const swap = await db('shift_swaps').where({ id: req.params.id, status: 'approved' }).first();
+  if (!swap) return res.status(404).json({ error: '没有已通过的换班可撤回' });
+  // 恢复原始员工
+  await db('shifts').where({ id: swap.shift_id }).update({ employee_id: swap.requester_id, status: 'scheduled', updated_at: db.fn.now() });
+  await db('shift_swaps').where({ id: req.params.id }).update({ status: 'pending', approver_id: req.user.id, updated_at: db.fn.now() });
+  res.json({ ok: true });
+});
+
 router.put('/swaps/:id/reject', role('owner', 'manager'), async (req, res) => {
   await db('shift_swaps').where({ id: req.params.id }).update({ status: 'rejected', approver_id: req.user.id, updated_at: db.fn.now() });
   res.json({ ok: true });
@@ -53,8 +63,9 @@ router.put('/swaps/:id/reject', role('owner', 'manager'), async (req, res) => {
 router.get('/leaves', role('owner', 'manager'), async (req, res) => {
   const leaves = await db('leave_requests')
     .join('employees', 'leave_requests.employee_id', 'employees.id')
+    .leftJoin('employees as approver', 'leave_requests.approver_id', 'approver.id')
     .where('employees.restaurant_id', req.restaurantId)
-    .select('leave_requests.*', 'employees.name as employee_name')
+    .select('leave_requests.*', 'employees.name as employee_name', 'approver.name as approver_name')
     .orderBy('leave_requests.created_at', 'desc');
   res.json(leaves);
 });
@@ -76,6 +87,11 @@ router.put('/leaves/:id/approve', role('owner', 'manager'), async (req, res) => 
 
 router.put('/leaves/:id/reject', role('owner', 'manager'), async (req, res) => {
   await db('leave_requests').where({ id: req.params.id }).update({ status: 'rejected', approver_id: req.user.id, updated_at: db.fn.now() });
+  res.json({ ok: true });
+});
+
+router.put('/leaves/:id/undo', role('owner', 'manager'), async (req, res) => {
+  await db('leave_requests').where({ id: req.params.id }).update({ status: 'pending', approver_id: null, updated_at: db.fn.now() });
   res.json({ ok: true });
 });
 

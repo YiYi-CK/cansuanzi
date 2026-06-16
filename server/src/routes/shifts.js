@@ -8,16 +8,43 @@ router.use(auth);
 /** 查排班 (按日期范围) */
 router.get('/', async (req, res) => {
   const { date_from, date_to } = req.query;
-  const query = db('shifts').where({ restaurant_id: req.restaurantId });
-  if (date_from) query.where('date', '>=', date_from);
-  if (date_to) query.where('date', '<=', date_to);
-  const shifts = await query.orderBy('date').orderBy('start_time');
+  const query = db('shifts')
+    .leftJoin('shift_swaps', function() { this.on('shifts.id', 'shift_swaps.shift_id').andOn('shift_swaps.status', db.raw('?', ['approved'])); })
+    .where({ 'shifts.restaurant_id': req.restaurantId })
+    .select('shifts.*', 'shift_swaps.id as swap_id', 'shift_swaps.requester_id as swap_from');
+  if (date_from) query.where('shifts.date', '>=', date_from);
+  if (date_to) query.where('shifts.date', '<=', date_to);
+  const shifts = await query.orderBy('shifts.date').orderBy('shifts.start_time');
+  
+  // 查该日期范围内已批准的请假
+  const leaves = await db('leave_requests')
+    .whereIn('status', ['approved'])
+    .where(function() { this.where('start_date', '<=', date_to).andWhere('end_date', '>=', date_from); })
+    .select('employee_id', 'start_date', 'end_date');
+
+  // 给每个排班标注是否在请假中
+  for (const s of shifts) {
+    s.on_leave = leaves.some(l => l.employee_id === s.employee_id && s.date >= l.start_date && s.date <= l.end_date);
+  }
+
   res.json(shifts);
 });
 
 /** 新增班次 */
 router.post('/', role('owner', 'manager'), async (req, res) => {
   const { employee_id, date, start_time, end_time, break_minutes, area } = req.body;
+
+  // 检查重复：同时段同员工只能有一个排班
+  if (employee_id) {
+    const conflict = await db('shifts')
+      .where({ restaurant_id: req.restaurantId, employee_id, date })
+      .where('start_time', '<', end_time)
+      .where('end_time', '>', start_time)
+      .whereIn('status', ['scheduled', 'completed'])
+      .first();
+    if (conflict) return res.status(409).json({ error: '该员工在此时段已有排班' });
+  }
+
   const [id] = await db('shifts').insert({
     restaurant_id: req.restaurantId, employee_id: employee_id || null,
     date, start_time, end_time,
@@ -44,70 +71,6 @@ router.put('/:id', role('owner', 'manager'), async (req, res) => {
 /** 删除班次 */
 router.delete('/:id', role('owner', 'manager'), async (req, res) => {
   await db('shifts').where({ id: req.params.id, restaurant_id: req.restaurantId }).del();
-  res.json({ ok: true });
-});
-
-/** 从模板批量排班 */
-router.post('/apply-template', role('owner', 'manager'), async (req, res) => {
-  const { templateId, weekStart } = req.body;
-  const template = await db('shift_templates').where({ id: templateId }).where(function () {
-    this.where({ restaurant_id: req.restaurantId }).orWhere({ is_system: true });
-  }).first();
-  if (!template) return res.status(404).json({ error: '模板不存在' });
-
-  const inserted = [];
-  for (let d = 0; d < 7; d++) {
-    const date = new Date(weekStart);
-    date.setDate(date.getDate() + d);
-    const dateStr = date.toISOString().split('T')[0];
-
-    if (template.day_of_week !== null && template.day_of_week !== date.getDay()) continue;
-
-    const [id] = await db('shifts').insert({
-      restaurant_id: req.restaurantId,
-      employee_id: null, // open shift
-      date: dateStr,
-      start_time: template.start_time,
-      end_time: template.end_time,
-      break_minutes: template.break_minutes,
-      area: template.area,
-    });
-    inserted.push(id);
-  }
-  res.status(201).json({ created: inserted.length });
-});
-
-/** 排班模板 CRUD */
-router.get('/templates', async (req, res) => {
-  const templates = await db('shift_templates')
-    .where({ restaurant_id: req.restaurantId })
-    .orWhere({ is_system: true })
-    .orderBy('is_system', 'desc')
-    .orderBy('name');
-  res.json(templates);
-});
-
-router.post('/templates', role('owner', 'manager'), async (req, res) => {
-  const { name, day_of_week, start_time, end_time, break_minutes, area } = req.body;
-  const [id] = await db('shift_templates').insert({
-    restaurant_id: req.restaurantId, name, day_of_week: day_of_week ?? null,
-    start_time, end_time, break_minutes: break_minutes || 0, area, is_system: false,
-  });
-  res.status(201).json({ id });
-});
-
-router.put('/templates/:id', role('owner', 'manager'), async (req, res) => {
-  const t = await db('shift_templates').where({ id: req.params.id, restaurant_id: req.restaurantId, is_system: false }).first();
-  if (!t) return res.status(404).json({ error: '未找到模板或不可修改系统模板' });
-  const { name, day_of_week, start_time, end_time, break_minutes, area } = req.body;
-  await db('shift_templates').where({ id: req.params.id }).update({ name, day_of_week, start_time, end_time, break_minutes, area });
-  res.json({ ok: true });
-});
-
-router.delete('/templates/:id', role('owner', 'manager'), async (req, res) => {
-  const t = await db('shift_templates').where({ id: req.params.id, restaurant_id: req.restaurantId, is_system: false }).first();
-  if (!t) return res.status(404).json({ error: '未找到模板或不可删除系统模板' });
-  await db('shift_templates').where({ id: req.params.id }).del();
   res.json({ ok: true });
 });
 

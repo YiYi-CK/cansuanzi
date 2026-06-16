@@ -27,7 +27,8 @@ function calcShiftWage(shift, employee, settings = {}) {
 
   const date = new Date(shift.date);
   const dayOfWeek = date.getDay(); // 0=Sun … 6=Sat
-  const isHoliday = (settings.public_holidays || []).some(h => h.date === shift.date);
+  const holidays = typeof settings.public_holidays === 'string' ? JSON.parse(settings.public_holidays || '[]') : (settings.public_holidays || []);
+  const isHoliday = holidays.some(h => h.date === shift.date);
 
   // 根据日期类型分配所有分钟
   if (isHoliday) {
