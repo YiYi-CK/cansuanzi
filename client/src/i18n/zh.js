@@ -186,6 +186,7 @@ export default {
     edit_payment: '编辑支付记录',
     delete_payment_confirm: '确定删除此支付记录？',
     no_payments: '暂无支付记录',
+    search_employee: '搜索员工',
     no_unpaid: '暂无应付工资',
     total: '合计',
     loading_hint: '估算依据的费率可在设置里调整',

@@ -186,6 +186,7 @@ export default {
     edit_payment: 'Edit Payment',
     delete_payment_confirm: 'Delete this payment record?',
     no_payments: 'No payment records',
+    search_employee: 'Search Employee',
     no_unpaid: 'No unpaid payroll',
     total: 'Total',
     loading_hint: 'Rates can be adjusted in Settings',

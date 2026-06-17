@@ -35,10 +35,13 @@
       <!-- Tab 3: 支付记录 -->
       <n-tab-pane name="payments" :tab="t('payroll.payments_tab')">
         <n-space vertical>
-          <n-date-picker v-model:value="paymentsDateRange" type="daterange" @update:value="fetchPayments" />
+          <n-space>
+            <n-date-picker v-model:value="paymentsDateRange" type="daterange" @update:value="fetchPayments" />
+            <n-input v-model:value="paymentsSearch" :placeholder="t('payroll.search_employee')" clearable style="width: 200px" />
+          </n-space>
           <n-spin :show="paymentsLoading">
-            <n-empty v-if="payments.length === 0" :description="t('payroll.no_payments')" style="padding: 40px" />
-            <n-data-table v-else :columns="paymentsColumns" :data="payments" :bordered="false" :single-line="false" />
+            <n-empty v-if="filteredPayments.length === 0" :description="t('payroll.no_payments')" style="padding: 40px" />
+            <n-data-table v-else :columns="paymentsColumns" :data="filteredPayments" :bordered="false" :single-line="false" />
           </n-spin>
         </n-space>
       </n-tab-pane>
@@ -125,6 +128,12 @@ const unpaid = ref({ employees: [], total_hours: 0, total_wage: 0 });
 const paymentsLoading = ref(false);
 const paymentsDateRange = ref(null);
 const payments = ref([]);
+const paymentsSearch = ref('');
+const filteredPayments = computed(() => {
+  if (!paymentsSearch.value) return payments.value;
+  const q = paymentsSearch.value.toLowerCase();
+  return payments.value.filter(p => (p.employee_name || '').toLowerCase().includes(q));
+});
 const showEditPayment = ref(false);
 const editPaymentTarget = ref(null);
 const editPaymentSaving = ref(false);
