@@ -61,4 +61,60 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
   res.json({ id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role, restaurantId: req.user.restaurant_id });
 });
 
+/** 忘记密码 — 生成重置令牌（开发模式直接返回链接） */
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: '请输入邮箱' });
+
+    const user = await db('employees').where({ email, active: true }).first();
+    if (!user) return res.json({ ok: true, message: '如果邮箱存在，重置链接已发送' });
+
+    const crypto = require('crypto');
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 3600000); // 1小时有效
+
+    await db('employees').where({ id: user.id }).update({
+      reset_token: resetToken,
+      reset_token_expires: expires,
+    });
+
+    // 开发模式：返回重置链接（正式上线时应通过邮件发送）
+    const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+    console.log('🔐 Reset link:', resetUrl);
+
+    res.json({ ok: true, message: '如果邮箱存在，重置链接已发送', reset_url: resetUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '发送失败' });
+  }
+});
+
+/** 重置密码 — 验证令牌并更新密码 */
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: '缺少参数' });
+
+    const user = await db('employees')
+      .where({ reset_token: token })
+      .where('reset_token_expires', '>', new Date())
+      .first();
+
+    if (!user) return res.status(400).json({ error: '重置链接无效或已过期' });
+
+    const hash = await bcrypt.hash(password, 10);
+    await db('employees').where({ id: user.id }).update({
+      password_hash: hash,
+      reset_token: null,
+      reset_token_expires: null,
+    });
+
+    res.json({ ok: true, message: '密码已重置，请重新登录' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '重置失败' });
+  }
+});
+
 module.exports = router;

@@ -11,7 +11,8 @@
         <n-button type="primary" block :loading="loading" @click="handleLogin">{{ t('auth.login') }}</n-button>
       </n-form>
       <p style="text-align: center; margin-top: 16px">
-        <n-button text type="primary" @click="$router.push('/register')">{{ t('auth.no_account') }}</n-button>
+        <n-button text type="primary" @click="$router.push('/register')">{{ t('auth.no_account') }}</n-button><br />
+        <n-button text type="primary" @click="$router.push('/forgot-password')" style="margin-top: 4px">忘记密码？</n-button>
       </p>
     </n-card>
   </div>
