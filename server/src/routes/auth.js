@@ -46,9 +46,15 @@ router.post('/login', async (req, res) => {
     if (!valid) return res.status(401).json({ error: '邮箱或密码错误' });
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const effectiveRole = user.position === '老板' ? 'owner' : user.position === '经理' ? 'manager' : user.role;
     res.json({
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, restaurantId: user.restaurant_id },
+      user: {
+        id: user.id, name: user.name, email: user.email,
+        role: effectiveRole,
+        position: user.position,
+        restaurantId: user.restaurant_id,
+      },
     });
   } catch (err) {
     console.error(err);
@@ -58,7 +64,8 @@ router.post('/login', async (req, res) => {
 
 /** 获取当前用户 */
 router.get('/me', require('../middleware/auth'), async (req, res) => {
-  res.json({ id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role, restaurantId: req.user.restaurant_id });
+  const effectiveRole = req.user.position === '老板' ? 'owner' : req.user.position === '经理' ? 'manager' : req.user.role;
+  res.json({ id: req.user.id, name: req.user.name, email: req.user.email, role: effectiveRole, position: req.user.position, restaurantId: req.user.restaurant_id });
 });
 
 /** 忘记密码 — 生成重置令牌（开发模式直接返回链接） */
