@@ -162,6 +162,8 @@ export default {
     payment_status: 'Payment Status',
     paid: 'Paid',
     unpaid: 'Unpaid',
+    partially_paid: 'Partially Paid',
+    prepaid: 'Prepaid',
     pay: 'Pay',
     cash: 'Cash',
     transfer: 'Transfer',

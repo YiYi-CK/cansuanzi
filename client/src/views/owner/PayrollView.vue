@@ -23,36 +23,46 @@
           <n-date-picker v-model:value="unpaidDateRange" type="daterange" @update:value="fetchUnpaid" />
           <n-spin :show="unpaidLoading">
             <n-empty v-if="unpaid.employees.length === 0" :description="t('payroll.no_unpaid')" style="padding: 40px" />
-            <template v-else>
-              <n-data-table :columns="unpaidColumns" :data="unpaid.employees" :bordered="false" :single-line="false" />
-              <n-divider />
-              <p style="font-size: 13px; color: var(--n-text-color-3)">
-                {{ t('payroll.total') }}: {{ Number(unpaid.total_hours).toFixed(1) }}h — ${{ Number(unpaid.total_wage).toFixed(2) }}
-              </p>
-            </template>
+            <n-data-table v-else :columns="unpaidColumns" :data="unpaid.employees" :bordered="false" :single-line="false" />
+            <n-divider v-if="unpaid.employees.length > 0" />
+            <p v-if="unpaid.employees.length > 0" style="font-size: 13px; color: var(--n-text-color-3)">
+              {{ t('payroll.total') }}: {{ Number(unpaid.total_hours).toFixed(1) }}h — ${{ Number(unpaid.total_wage).toFixed(2) }}
+            </p>
           </n-spin>
         </n-space>
       </n-tab-pane>
     </n-tabs>
 
     <!-- 支付弹窗 -->
-    <n-modal v-model:show="showPayModal" preset="card" :title="t('payroll.pay_confirm')" style="width: 400px">
+    <n-modal v-model:show="showPayModal" preset="card" :title="t('payroll.pay_confirm')" style="width: 420px">
       <div v-if="payTarget">
         <p><strong>{{ payTarget.name }}</strong></p>
         <p>{{ t('payroll.estimated_wage') }}: <strong style="font-size: 18px; color: #EA580C">${{ Number(payTarget.estimated_wage).toFixed(2) }}</strong></p>
         <p style="font-size: 12px; color: var(--n-text-color-3)">{{ payPeriodStr }}</p>
         <n-divider />
-        <n-form-item :label="t('payroll.pay_confirm')">
-          <n-radio-group v-model:value="payMethod">
-            <n-space>
-              <n-radio value="cash">{{ t('payroll.cash') }}</n-radio>
-              <n-radio value="transfer">{{ t('payroll.transfer') }}</n-radio>
-            </n-space>
-          </n-radio-group>
+
+        <!-- 现金 -->
+        <n-form-item :label="t('payroll.cash')">
+          <n-space>
+            <n-checkbox v-model:checked="payCash" />
+            <n-input-number v-model:value="payCashAmount" :min="0" :step="0.01" :precision="2" :disabled="!payCash" style="width: 160px" />
+          </n-space>
         </n-form-item>
+        <!-- 转账 -->
+        <n-form-item :label="t('payroll.transfer')">
+          <n-space>
+            <n-checkbox v-model:checked="payTransfer" />
+            <n-input-number v-model:value="payTransferAmount" :min="0" :step="0.01" :precision="2" :disabled="!payTransfer" style="width: 160px" />
+          </n-space>
+        </n-form-item>
+
+        <p style="font-size: 13px; color: var(--n-text-color-3)">
+          {{ t('payroll.total') }}: ${{ totalPayAmount.toFixed(2) }}
+        </p>
+
         <n-space justify="end" style="margin-top: 16px">
           <n-button @click="showPayModal = false">{{ t('common.cancel') }}</n-button>
-          <n-button type="primary" :loading="paying" @click="confirmPay">{{ t('payroll.pay') }}</n-button>
+          <n-button type="primary" :loading="paying" :disabled="totalPayAmount <= 0" @click="confirmPay">{{ t('payroll.pay') }}</n-button>
         </n-space>
       </div>
     </n-modal>
@@ -71,12 +81,12 @@ const message = useMessage();
 // Tab
 const activeTab = ref('overview');
 
-// Tab 1: 概览
+// Tab 1
 const loading = ref(false);
 const dateRange = ref(null);
 const payroll = ref({ employees: [], total_hours: 0, total_wage: 0 });
 
-// Tab 2: 应付
+// Tab 2
 const unpaidLoading = ref(false);
 const unpaidDateRange = ref(null);
 const unpaid = ref({ employees: [], total_hours: 0, total_wage: 0 });
@@ -84,15 +94,17 @@ const unpaid = ref({ employees: [], total_hours: 0, total_wage: 0 });
 // 支付弹窗
 const showPayModal = ref(false);
 const payTarget = ref(null);
-const payMethod = ref('cash');
+const payCash = ref(true);
+const payCashAmount = ref(0);
+const payTransfer = ref(false);
+const payTransferAmount = ref(0);
 const paying = ref(false);
 const payPeriodStr = ref('');
 
-/** 获取本周的周一和周日 */
 function getThisWeek() {
   const now = new Date();
-  const day = now.getDay(); // 0=Sun
-  const diff = day === 0 ? 6 : day - 1; // 到周一的天数差
+  const day = now.getDay();
+  const diff = day === 0 ? 6 : day - 1;
   const mon = new Date(now);
   mon.setDate(now.getDate() - diff);
   const sun = new Date(mon);
@@ -100,7 +112,18 @@ function getThisWeek() {
   return [mon.getTime(), sun.getTime()];
 }
 
-// 概览列
+const totalPayAmount = computed(() => {
+  let t = 0;
+  if (payCash.value) t += Number(payCashAmount.value) || 0;
+  if (payTransfer.value) t += Number(payTransferAmount.value) || 0;
+  return t;
+});
+
+// 支付状态颜色映射
+function statusType(s) {
+  return s === 'paid' ? 'success' : s === 'partially_paid' ? 'warning' : s === 'prepaid' ? 'info' : 'default';
+}
+
 const overviewColumns = computed(() => [
   { title: t('payroll.name'), key: 'name' },
   { title: t('payroll.total_hours'), key: 'total_hours' },
@@ -108,30 +131,36 @@ const overviewColumns = computed(() => [
   { title: t('payroll.weekend_hours'), key: 'saturday_hours' },
   { title: t('payroll.holiday_hours'), key: 'holiday_hours' },
   { title: t('payroll.estimated_wage'), key: 'estimated_wage', render: (row) => '$' + Number(row.estimated_wage).toFixed(2) },
-  { title: t('payroll.payment_status'), key: 'payment_status', render: (row) =>
-    h(NTag, { type: row.payment_status === 'paid' ? 'success' : 'warning', size: 'small' }, {
-      default: () => row.payment_status === 'paid' ? t('payroll.paid') : t('payroll.unpaid'),
-    }),
-  },
+  { title: t('payroll.payment_status'), key: 'payment_status', render: (row) => {
+    let label = row.payment_status;
+    if (label === 'paid') label = t('payroll.paid');
+    else if (label === 'unpaid') label = t('payroll.unpaid');
+    else if (label === 'partially_paid') label = t('payroll.partially_paid');
+    else if (label === 'prepaid') label = t('payroll.prepaid');
+    return h(NTag, { type: statusType(row.payment_status), size: 'small' }, { default: () => label });
+  }},
   { title: '', key: 'actions', render: (row) =>
     row.payment_status !== 'paid' ? h(NButton, { size: 'small', type: 'primary', onClick: () => openPay(row) }, { default: () => t('payroll.pay') }) : null,
   },
 ]);
 
-// 应付列
 const unpaidColumns = computed(() => [
   { title: t('payroll.name'), key: 'name' },
   { title: t('payroll.total_hours'), key: 'total_hours' },
-  { title: t('payroll.weekday_hours'), key: 'weekday_hours' },
-  { title: t('payroll.weekend_hours'), key: 'saturday_hours' },
-  { title: t('payroll.holiday_hours'), key: 'holiday_hours' },
   { title: t('payroll.estimated_wage'), key: 'estimated_wage', render: (row) => '$' + Number(row.estimated_wage).toFixed(2) },
+  { title: t('payroll.payment_status'), key: 'paid_amount', render: (row) => {
+    if (!row.paid_amount || row.paid_amount <= 0) return h(NTag, { type: 'default', size: 'small' }, { default: () => t('payroll.unpaid') });
+    return '$' + Number(row.paid_amount).toFixed(2) + ' / ' + t('payroll.partially_paid');
+  }},
   { title: '', key: 'actions', render: (row) =>
     h(NButton, { size: 'small', type: 'primary', onClick: () => {
       const [from, to] = unpaidDateRange.value || getThisWeek();
       payPeriodStr.value = new Date(from).toISOString().split('T')[0] + ' ~ ' + new Date(to).toISOString().split('T')[0];
       payTarget.value = row;
-      payMethod.value = 'cash';
+      payCash.value = true;
+      payCashAmount.value = row.remaining || row.estimated_wage;
+      payTransfer.value = false;
+      payTransferAmount.value = 0;
       showPayModal.value = true;
     }}, { default: () => t('payroll.pay') }),
   },
@@ -141,9 +170,10 @@ async function fetchOverview() {
   loading.value = true;
   try {
     const [from, to] = dateRange.value || getThisWeek();
-    const dateFrom = new Date(from).toISOString().split('T')[0];
-    const dateTo = new Date(to).toISOString().split('T')[0];
-    payroll.value = (await payrollAPI.get(dateFrom, dateTo)).data;
+    payroll.value = (await payrollAPI.get(
+      new Date(from).toISOString().split('T')[0],
+      new Date(to).toISOString().split('T')[0],
+    )).data;
   } catch (err) { console.error(err); } finally { loading.value = false; }
 }
 
@@ -151,9 +181,10 @@ async function fetchUnpaid() {
   unpaidLoading.value = true;
   try {
     const [from, to] = unpaidDateRange.value || getThisWeek();
-    const dateFrom = new Date(from).toISOString().split('T')[0];
-    const dateTo = new Date(to).toISOString().split('T')[0];
-    unpaid.value = (await payrollAPI.unpaid(dateFrom, dateTo)).data;
+    unpaid.value = (await payrollAPI.unpaid(
+      new Date(from).toISOString().split('T')[0],
+      new Date(to).toISOString().split('T')[0],
+    )).data;
   } catch (err) { console.error(err); } finally { unpaidLoading.value = false; }
 }
 
@@ -161,7 +192,10 @@ function openPay(row) {
   const [from, to] = dateRange.value || getThisWeek();
   payPeriodStr.value = new Date(from).toISOString().split('T')[0] + ' ~ ' + new Date(to).toISOString().split('T')[0];
   payTarget.value = row;
-  payMethod.value = 'cash';
+  payCash.value = true;
+  payCashAmount.value = row.estimated_wage;
+  payTransfer.value = false;
+  payTransferAmount.value = 0;
   showPayModal.value = true;
 }
 
@@ -169,20 +203,22 @@ async function confirmPay() {
   paying.value = true;
   try {
     const [from, to] = dateRange.value || getThisWeek();
+    const payItems = [];
+    if (payCash.value && payCashAmount.value > 0) payItems.push({ method: 'cash', amount: payCashAmount.value });
+    if (payTransfer.value && payTransferAmount.value > 0) payItems.push({ method: 'transfer', amount: payTransferAmount.value });
+
     await payrollAPI.pay({
       employee_id: payTarget.value.employee_id,
       period_start: new Date(from).toISOString().split('T')[0],
       period_end: new Date(to).toISOString().split('T')[0],
-      amount: payTarget.value.estimated_wage,
-      method: payMethod.value,
+      payments: payItems,
     });
     message.success(t('payroll.pay_success'));
     showPayModal.value = false;
     fetchOverview();
     fetchUnpaid();
   } catch (err) {
-    const msg = err.response?.data?.error;
-    message.error(msg === '该周期已支付' ? t('payroll.already_paid') : (msg || t('payroll.pay_failed')));
+    message.error(err.response?.data?.error || t('payroll.pay_failed'));
   } finally {
     paying.value = false;
   }

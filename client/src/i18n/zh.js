@@ -162,6 +162,8 @@ export default {
     payment_status: '支付状态',
     paid: '已付',
     unpaid: '未付',
+    partially_paid: '未付完',
+    prepaid: '预付',
     pay: '支付',
     cash: '现金',
     transfer: '转账',

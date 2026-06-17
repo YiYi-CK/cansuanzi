@@ -11,24 +11,36 @@ router.get('/', role('owner'), async (req, res) => {
   const { date_from, date_to } = req.query;
   try {
     const result = await getPayroll(req.restaurantId, date_from, date_to);
-    // 查询支付记录，标记已付/未付
     if (date_from && date_to) {
+      // 查询所有支付记录（可能多条/人）
       const payments = await db('payments')
         .where({ restaurant_id: req.restaurantId })
         .where('period_start', date_from)
         .where('period_end', date_to)
-        .select('employee_id', 'method', 'paid_at');
-      const paidMap = {};
-      for (const p of payments) paidMap[p.employee_id] = p;
+        .select('employee_id', 'method', 'amount', 'type', 'paid_at');
+      // 按员工汇总
+      const payMap = {};
+      for (const p of payments) {
+        if (!payMap[p.employee_id]) payMap[p.employee_id] = { total: 0, methods: [], type: 'payment' };
+        payMap[p.employee_id].total += parseFloat(p.amount);
+        payMap[p.employee_id].methods.push(p.method);
+        if (p.type === 'advance') payMap[p.employee_id].type = 'advance';
+      }
 
       for (const emp of result.employees) {
-        const pay = paidMap[emp.employee_id];
-        if (pay) {
-          emp.payment_status = 'paid';
-          emp.payment_method = pay.method;
-          emp.paid_at = pay.paid_at;
-        } else {
+        const pay = payMap[emp.employee_id];
+        if (!pay) {
           emp.payment_status = 'unpaid';
+        } else if (pay.type === 'advance') {
+          emp.payment_status = 'prepaid';
+          emp.payment_method = pay.methods.join('+');
+        } else if (pay.total >= emp.estimated_wage) {
+          emp.payment_status = 'paid';
+          emp.payment_method = pay.methods.join('+');
+        } else {
+          emp.payment_status = 'partially_paid';
+          emp.payment_method = pay.methods.join('+');
+          emp.paid_amount = pay.total;
         }
       }
     } else {
@@ -41,48 +53,66 @@ router.get('/', role('owner'), async (req, res) => {
   }
 });
 
-/** 支付工资 */
+/** 支付工资 — 支持现金+转账拆分支付 */
 router.post('/pay', role('owner'), async (req, res) => {
-  const { employee_id, period_start, period_end, amount, method } = req.body;
-  if (!employee_id || !period_start || !period_end || amount === undefined || !method) {
+  const { employee_id, period_start, period_end, payments: payItems } = req.body;
+  if (!employee_id || !period_start || !period_end || !payItems || payItems.length === 0) {
     return res.status(400).json({ error: '缺少必要参数' });
   }
-  if (!['cash', 'transfer'].includes(method)) {
-    return res.status(400).json({ error: '支付方式仅支持 cash 或 transfer' });
-  }
-  try {
-    // 检查是否已支付
-    const existing = await db('payments')
-      .where({ restaurant_id: req.restaurantId, employee_id, period_start, period_end })
-      .first();
-    if (existing) return res.status(409).json({ error: '该周期已支付' });
 
-    const [id] = await db('payments').insert({
-      restaurant_id: req.restaurantId,
-      employee_id,
-      period_start,
-      period_end,
-      amount: Math.round(amount * 100) / 100,
-      method,
-    });
-    res.status(201).json({ id });
+  try {
+    const inserted = [];
+    for (const item of payItems) {
+      if (!item.method || !['cash', 'transfer'].includes(item.method)) {
+        return res.status(400).json({ error: `不支持的支付方式: ${item.method}` });
+      }
+      if (!item.amount || item.amount <= 0) continue;
+      const type = item.type === 'advance' ? 'advance' : 'payment';
+      const [id] = await db('payments').insert({
+        restaurant_id: req.restaurantId,
+        employee_id,
+        period_start,
+        period_end,
+        amount: Math.round(parseFloat(item.amount) * 100) / 100,
+        method: item.method,
+        type,
+        notes: item.notes || null,
+      });
+      inserted.push(id);
+    }
+    res.status(201).json({ ids: inserted });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: '支付记录失败' });
   }
 });
 
-/** 应付工资列表 — 所有未付员工 */
+/** 应付工资列表 — 所有未付+未付完员工 */
 router.get('/unpaid', role('owner'), async (req, res) => {
   const { date_from, date_to } = req.query;
   if (!date_from || !date_to) return res.status(400).json({ error: '需要 date_from 和 date_to' });
   try {
     const result = await getPayroll(req.restaurantId, date_from, date_to);
-    const paidIds = (await db('payments')
+    // 排除已付清的
+    const payments = await db('payments')
       .where({ restaurant_id: req.restaurantId, period_start: date_from, period_end: date_to })
-      .select('employee_id'))
-      .map(p => p.employee_id);
-    const unpaid = result.employees.filter(e => !paidIds.includes(e.employee_id));
+      .where('type', 'payment')
+      .select('employee_id', 'amount');
+    const payMap = {};
+    for (const p of payments) {
+      if (!payMap[p.employee_id]) payMap[p.employee_id] = 0;
+      payMap[p.employee_id] += parseFloat(p.amount);
+    }
+
+    const unpaid = result.employees.filter(e => {
+      const paid = payMap[e.employee_id] || 0;
+      return paid < e.estimated_wage;
+    }).map(e => ({
+      ...e,
+      paid_amount: payMap[e.employee_id] || 0,
+      remaining: Math.round((e.estimated_wage - (payMap[e.employee_id] || 0)) * 100) / 100,
+    }));
+
     res.json({
       date_from,
       date_to,
