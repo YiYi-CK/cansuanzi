@@ -49,7 +49,9 @@
           </n-space>
 
           <!-- 空状态 -->
-          <n-empty v-if="records.length === 0" :description="t('report.no_records')" style="padding: 40px" />
+          <div v-if="records.length === 0" style="padding: 40px; text-align: center; color: var(--n-text-color-3)">
+            {{ t('report.no_records') }}
+          </div>
 
           <!-- 记录列表 -->
           <n-card v-for="r in records" :key="r.id" size="small" style="margin-bottom: 8px">
@@ -74,12 +76,7 @@
               </div>
               <n-space>
                 <n-button size="tiny" @click="openEdit(r)">✏️ 编辑</n-button>
-                <n-popconfirm @positive-click="deleteRecord(r)">
-                  <template #activator>
-                    <n-button size="tiny" type="error" secondary>🗑️</n-button>
-                  </template>
-                  确定删除 {{ r.date }} 的日报记录？
-                </n-popconfirm>
+                <n-button size="tiny" type="error" @click="deleteRecord(r)">🗑️</n-button>
               </n-space>
             </div>
           </n-card>
@@ -127,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, onErrorCaptured } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMessage } from 'naive-ui';
 import { reportsAPI, expensesAPI } from '../../api/endpoints';
@@ -139,9 +136,12 @@ const saving = ref(false);
 const editSaving = ref(false);
 const showEditModal = ref(false);
 
-// 筛选
-const filterDateFrom = ref(null);
-const filterDateTo = ref(null);
+// 筛选（默认近30天）
+const now = new Date();
+const defaultFrom = new Date(now);
+defaultFrom.setDate(now.getDate() - 30);
+const filterDateFrom = ref(defaultFrom.getTime());
+const filterDateTo = ref(now.getTime());
 
 // 表单
 const form = ref({
@@ -329,7 +329,14 @@ function downloadTemplate() {
   const a = document.createElement('a'); a.href = url; a.download = 'pos_template.csv'; a.click();
 }
 
-onMounted(() => {
-  loadRecords();
+// 捕获渲染错误，不崩掉整个组件
+onErrorCaptured((err, instance, info) => {
+  console.error('ReportImportView render error:', err, info);
+  return false; // 阻止向上传播
+});
+
+// 切换到 records 分页时加载
+watch(activeTab, (tab) => {
+  if (tab === 'records') loadRecords();
 });
 </script>
