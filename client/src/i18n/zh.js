@@ -10,6 +10,10 @@ export default {
     loading: '加载中...',
     confirm: '确认',
     back: '返回',
+    save_success: '保存成功',
+    save_failed: '保存失败',
+    delete_success: '已删除',
+    delete_failed: '删除失败',
   },
   nav: {
     dashboard: '看板',
@@ -105,6 +109,12 @@ export default {
     import_success: '导入成功',
     import_failed: '导入失败',
     csv_format_error: 'CSV格式错误，请检查列名',
+    records: '历史记录',
+    date_from: '开始日期',
+    date_to: '结束日期',
+    no_records: '暂无记录',
+    edit_record: '编辑日报',
+    load_failed: '加载失败',
   },
   payroll: {
     title: '工资概览',

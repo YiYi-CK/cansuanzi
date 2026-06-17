@@ -25,6 +25,16 @@ router.get('/', role('owner'), async (req, res) => {
   res.json(rows);
 });
 
+/** 更新支出 */
+router.put('/:id', role('owner'), async (req, res) => {
+  const { date, category, amount, description } = req.body;
+  const updated = await db('expense_entries')
+    .where({ id: req.params.id, restaurant_id: req.restaurantId })
+    .update({ date, category, amount, description });
+  if (!updated) return res.status(404).json({ error: '支出不存在' });
+  res.json({ ok: true });
+});
+
 /** 删除支出 */
 router.delete('/:id', role('owner'), async (req, res) => {
   await db('expense_entries').where({ id: req.params.id, restaurant_id: req.restaurantId }).del();

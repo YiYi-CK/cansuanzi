@@ -64,6 +64,23 @@ router.get('/pos', role('owner'), async (req, res) => {
   res.json(rows);
 });
 
+/** 查单条日报 */
+router.get('/pos/:id', role('owner'), async (req, res) => {
+  const row = await db('pos_daily_reports').where({ id: req.params.id, restaurant_id: req.restaurantId }).first();
+  if (!row) return res.status(404).json({ error: '日报不存在' });
+  res.json(row);
+});
+
+/** 更新日报 */
+router.put('/pos/:id', role('owner'), async (req, res) => {
+  const { date, total_revenue, total_cash, total_card, notes } = req.body;
+  const updated = await db('pos_daily_reports')
+    .where({ id: req.params.id, restaurant_id: req.restaurantId })
+    .update({ date, total_revenue, total_cash: total_cash || 0, total_card: total_card || 0, notes });
+  if (!updated) return res.status(404).json({ error: '日报不存在' });
+  res.json({ ok: true });
+});
+
 /** 删除日报 */
 router.delete('/pos/:id', role('owner'), async (req, res) => {
   await db('pos_daily_reports').where({ id: req.params.id, restaurant_id: req.restaurantId }).del();

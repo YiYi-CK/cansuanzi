@@ -10,6 +10,10 @@ export default {
     loading: 'Loading...',
     confirm: 'Confirm',
     back: 'Back',
+    save_success: 'Saved successfully',
+    save_failed: 'Failed to save',
+    delete_success: 'Deleted',
+    delete_failed: 'Failed to delete',
   },
   nav: {
     dashboard: 'Dashboard',
@@ -105,6 +109,12 @@ export default {
     import_success: 'Import successful',
     import_failed: 'Import failed',
     csv_format_error: 'CSV format error, check column names',
+    records: 'Records',
+    date_from: 'Start Date',
+    date_to: 'End Date',
+    no_records: 'No records',
+    edit_record: 'Edit Report',
+    load_failed: 'Failed to load',
   },
   payroll: {
     title: 'Payroll Overview',

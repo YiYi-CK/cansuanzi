@@ -38,7 +38,9 @@ export const approvalsAPI = {
 
 export const reportsAPI = {
   posList: (date_from, date_to) => client.get('/reports/pos', { params: { date_from, date_to } }),
+  posGet: (id) => client.get(`/reports/pos/${id}`),
   posCreate: (data) => client.post('/reports/pos', data),
+  posUpdate: (id, data) => client.put(`/reports/pos/${id}`, data),
   posImportCSV: (file) => {
     const fd = new FormData();
     fd.append('file', file);
@@ -50,6 +52,7 @@ export const reportsAPI = {
 export const expensesAPI = {
   list: (date_from, date_to) => client.get('/expenses', { params: { date_from, date_to } }),
   create: (data) => client.post('/expenses', data),
+  update: (id, data) => client.put(`/expenses/${id}`, data),
   remove: (id) => client.delete(`/expenses/${id}`),
 };
 
