@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, h } from 'vue';
+import { ref, computed, onMounted, onErrorCaptured, h } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMessage, NButton, NTag } from 'naive-ui';
 import { payrollAPI } from '../../api/endpoints';
