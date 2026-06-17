@@ -9,7 +9,7 @@
           <n-form-item :label="t('report.total_revenue')"><n-input-number v-model:value="form.total_revenue" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
           <n-form-item :label="t('report.cash')"><n-input-number v-model:value="form.total_cash" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
           <n-form-item :label="t('report.card')"><n-input-number v-model:value="form.total_card" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
-          <n-form-item label="长短款">
+          <n-form-item :label="t('report.difference')">
             <span :style="{ color: diffColor, fontWeight: 'bold', fontSize: '16px' }">{{ diffStr }}</span>
           </n-form-item>
           <n-form-item :label="t('report.notes')"><n-input v-model:value="form.notes" type="textarea" /></n-form-item>
@@ -23,7 +23,7 @@
               <n-button size="small" @click="form.expenses.splice(i, 1)">×</n-button>
             </n-space>
           </n-form-item>
-          <n-button size="small" @click="form.expenses.push({ category: 'food', amount: 0, customName: '' })">+ 添加支出</n-button>
+          <n-button size="small" @click="form.expenses.push({ category: 'food', amount: 0, customName: '' })">{{ t('report.add_expense') }}</n-button>
 
           <n-form-item style="margin-top: 20px">
             <n-button type="primary" :loading="saving" @click="submitManual">{{ t('common.save') }}</n-button>
@@ -102,7 +102,7 @@
         <n-form-item :label="t('report.card')">
           <n-input-number v-model:value="editForm.total_card" :min="0" :step="0.01" :precision="2" style="width: 100%" />
         </n-form-item>
-        <n-form-item label="长短款">
+        <n-form-item :label="t('report.difference')">
           <span :style="{ color: editDiffColor, fontWeight: 'bold', fontSize: '16px' }">{{ editDiffStr }}</span>
         </n-form-item>
         <n-form-item :label="t('report.notes')">
@@ -118,7 +118,7 @@
             <n-button size="small" @click="editForm.expenses.splice(i, 1)">×</n-button>
           </n-space>
         </n-form-item>
-        <n-button size="small" @click="editForm.expenses.push({ category: 'food', amount: 0, customName: '' })">+ 添加支出</n-button>
+        <n-button size="small" @click="editForm.expenses.push({ category: 'food', amount: 0, customName: '' })">{{ t('report.add_expense') }}</n-button>
 
         <n-space style="margin-top: 20px; justify-content: flex-end">
           <n-button @click="showEditModal = false">{{ t('common.cancel') }}</n-button>
@@ -182,13 +182,13 @@ const editDiffStr = computed(() => {
 });
 const editDiffColor = computed(() => editDiffAmount.value >= 0 ? '#16A34A' : '#DC2626');
 
-const expenseCategoryOptions = [
-  { label: '食材', value: 'food' },
-  { label: '饮料', value: 'beverage' },
-  { label: '房租', value: 'rent' },
-  { label: '水电', value: 'utilities' },
-  { label: '其他', value: 'other' },
-];
+const expenseCategoryOptions = computed(() => [
+  { label: t('report.food'), value: 'food' },
+  { label: t('report.beverage'), value: 'beverage' },
+  { label: t('report.rent'), value: 'rent' },
+  { label: t('report.utilities'), value: 'utilities' },
+  { label: t('report.other'), value: 'other' },
+]);
 
 // 记录列表
 const records = ref([]);
@@ -304,7 +304,7 @@ async function deleteRecord(r) {
 
 // 支出类别中文名
 function expenseLabel(cat) {
-  const map = { food: '食材', beverage: '饮料', rent: '房租', utilities: '水电', other: '其他' };
+  const map = { food: t('report.food'), beverage: t('report.beverage'), rent: t('report.rent'), utilities: t('report.utilities'), other: t('report.other') };
   return map[cat] || cat;
 }
 

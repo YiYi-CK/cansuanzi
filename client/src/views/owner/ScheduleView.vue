@@ -5,13 +5,13 @@
     <n-space style="margin-bottom: 16px">
       <n-date-picker v-model:value="weekStart" type="date" @update:value="fetchShifts" />
       <n-button @click="copyLastWeek" :loading="copyLoading">{{ t('schedule.copy_last_week') }}</n-button>
-      <n-button @click="downloadPDF">📥 下载Excel</n-button>
+      <n-button @click="downloadPDF">📥 {{ t('schedule.download_excel') }}</n-button>
     </n-space>
 
     <n-spin :show="loading">
       <!-- 无营业时间 -->
-      <n-empty v-if="timeSlots.length === 0" description="请先在设置页配置营业时间" style="padding: 40px">
-        <template #extra><n-button type="primary" @click="$router.push('/settings')">去设置</n-button></template>
+      <n-empty v-if="timeSlots.length === 0" :description="t('schedule.no_business_hours')" style="padding: 40px">
+        <template #extra><n-button type="primary" @click="$router.push('/settings')">{{ t('settings.title') }}</n-button></template>
       </n-empty>
 
       <template v-else>
@@ -72,15 +72,15 @@
     </n-spin>
 
     <!-- 新增/编辑弹窗 -->
-    <n-modal preset="card" v-model:show="showAdd" :title="editingShift ? '编辑排班' : '新增排班'" style="width: 380px">
+    <n-modal preset="card" v-model:show="showAdd" :title="editingShift ? t('schedule.edit_shift') : t('schedule.add_shift')" style="width: 380px">
       <n-form :model="addForm" label-placement="left" label-width="70">
-        <n-form-item label="员工">
-          <n-select v-model:value="addForm.employee_id" :options="employeeOpts" placeholder="选择员工" />
+        <n-form-item :label="t('employee.employee')">
+          <n-select v-model:value="addForm.employee_id" :options="employeeOpts" :placeholder="t('schedule.choose_employee')" />
         </n-form-item>
-        <n-form-item label="工位">
-          <n-select v-model:value="addForm.area" :options="areaOptions" placeholder="选择工位" />
+        <n-form-item :label="t('schedule.station')">
+          <n-select v-model:value="addForm.area" :options="areaOptions" :placeholder="t('schedule.choose_station')" />
         </n-form-item>
-        <n-form-item label="时间">
+        <n-form-item :label="t('schedule.time')">
           <n-space>
             <input type="time" v-model="addForm.start_time" :min="settings.operating_start || '08:00'" :max="settings.operating_end || '21:00'" style="padding:6px 10px;border:1px solid var(--n-border-color);border-radius:6px;font-size:14px;background:var(--n-color)" />
             <span>—</span>

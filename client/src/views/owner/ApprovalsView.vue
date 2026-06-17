@@ -14,14 +14,14 @@
               <span style="color: var(--n-text-color-3); font-size: 13px">{{ s.date }} {{ s.start_time }}-{{ s.end_time }}</span>
               <span v-if="s.reason" style="color: var(--n-text-color-3); font-size: 13px; margin-left: 8px">| {{ s.reason }}</span>
               <br />
-              <span v-if="s.approver_name" style="font-size: 12px; color: var(--n-text-color-3)">{{ s.status === 'approved' ? '✅' : '❌' }} {{ s.approver_name }} 审批</span>
+              <span v-if="s.approver_name" style="font-size: 12px; color: var(--n-text-color-3)">{{ s.status === 'approved' ? t('approvals.approved_by', { name: s.approver_name }) : t('approvals.rejected_by', { name: s.approver_name }) }}</span>
             </div>
             <n-space>
               <n-space v-if="s.status === 'pending'">
                 <n-button type="success" size="small" @click="approveSwap(s.id)">{{ t('approvals.approve') }}</n-button>
                 <n-button type="error" size="small" @click="rejectSwap(s.id)">{{ t('approvals.reject') }}</n-button>
               </n-space>
-              <n-button v-if="s.status !== 'pending'" size="tiny" @click="undoSwap(s.id)">↩ 撤回</n-button>
+              <n-button v-if="s.status !== 'pending'" size="tiny" @click="undoSwap(s.id)">↩ {{ t('approvals.undo') }}</n-button>
             </n-space>
           </div>
         </n-card>
@@ -39,14 +39,14 @@
               </span>
               <span v-if="l.reason" style="color: var(--n-text-color-3); font-size: 13px; margin-left: 8px">| {{ l.reason }}</span>
               <br />
-              <span v-if="l.approver_name" style="font-size: 12px; color: var(--n-text-color-3)">{{ l.status === 'approved' ? '✅' : '❌' }} {{ l.approver_name }} 审批</span>
+              <span v-if="l.approver_name" style="font-size: 12px; color: var(--n-text-color-3)">{{ l.status === 'approved' ? t('approvals.approved_by', { name: l.approver_name }) : t('approvals.rejected_by', { name: l.approver_name }) }}</span>
             </div>
             <n-space>
               <n-space v-if="l.status === 'pending'">
                 <n-button type="success" size="small" @click="approveLeave(l.id)">{{ t('approvals.approve') }}</n-button>
                 <n-button type="error" size="small" @click="rejectLeave(l.id)">{{ t('approvals.reject') }}</n-button>
               </n-space>
-              <n-button v-if="l.status !== 'pending'" size="tiny" @click="undoLeave(l.id)">↩ 撤回</n-button>
+              <n-button v-if="l.status !== 'pending'" size="tiny" @click="undoLeave(l.id)">↩ {{ t('approvals.undo') }}</n-button>
             </n-space>
           </div>
         </n-card>
@@ -80,9 +80,9 @@ async function rejectSwap(id) { await approvalsAPI.rejectSwap(id); message.info(
 async function approveLeave(id) { await approvalsAPI.approveLeave(id); message.success(t('approvals.approved')); fetchData(); }
 async function rejectLeave(id) { await approvalsAPI.rejectLeave(id); message.info(t('approvals.rejected')); fetchData(); }
 
-async function undoSwap(id) { await approvalsAPI.undoSwap(id); message.success('已撤回'); fetchData(); }
+async function undoSwap(id) { await approvalsAPI.undoSwap(id); message.success(t('approvals.undo_success')); fetchData(); }
 
-async function undoLeave(id) { await approvalsAPI.undoLeave(id); message.success('已撤回'); fetchData(); }
+async function undoLeave(id) { await approvalsAPI.undoLeave(id); message.success(t('approvals.undo_success')); fetchData(); }
 
 onMounted(fetchData);
 </script>

@@ -24,21 +24,21 @@
         <n-form-item :label="t('employee.hourly_rate')">
           <n-input-number v-model:value="form.base_hourly_rate" :min="0" :step="0.01" :precision="2" />
         </n-form-item>
-        <n-form-item label="职位">
-          <n-select v-model:value="form.position" :options="positionOptions" placeholder="选择职位" filterable tag />
+        <n-form-item :label="t('employee.position')">
+          <n-select v-model:value="form.position" :options="positionOptions" :placeholder="t('employee.choose_position')" filterable tag />
         </n-form-item>
-        <n-form-item label="可做工位">
+        <n-form-item :label="t('employee.stations')">
           <n-checkbox-group v-model:value="form.station_ids">
             <n-space><n-checkbox v-for="s in stationList" :key="s" :value="s" :label="s" /></n-space>
           </n-checkbox-group>
         </n-form-item>
         <n-form-item v-if="!editing" :label="t('auth.password')"><n-input v-model:value="form.password" type="password" /></n-form-item>
-        <n-form-item v-if="editing" label="新密码">
+        <n-form-item v-if="editing" :label="t('employee.new_password')">
           <n-space>
-            <n-input v-model:value="form.password" type="password" placeholder="留空不修改" style="width: 180px" />
-            <n-button size="small" @click="form.password = genPassword(); generateTip = true">生成随机密码</n-button>
+            <n-input v-model:value="form.password" type="password" :placeholder="t('employee.pwd_placeholder')" style="width: 180px" />
+            <n-button size="small" @click="form.password = genPassword(); generateTip = true">{{ t('employee.gen_password') }}</n-button>
           </n-space>
-          <div v-if="generateTip" style="font-size:12px;color:#EA580C;margin-top:4px">新密码: {{ form.password }}</div>
+          <div v-if="generateTip" style="font-size:12px;color:#EA580C;margin-top:4px">{{ t('employee.new_password') }}: {{ form.password }}</div>
         </n-form-item>
       </n-form>
       <template #footer>
@@ -78,16 +78,16 @@ const typeOptions = [
 ];
 
 const positionOptions = [
-  { label: '厨师', value: '厨师' },
-  { label: '服务员', value: '服务员' },
-  { label: '收银', value: '收银' },
-  { label: '洗碗工', value: '洗碗工' },
-  { label: '前台', value: '前台' },
-  { label: '经理', value: '经理' },
-  { label: '老板', value: '老板' },
+  { label: t('employee.chef'), value: '厨师' },
+  { label: t('employee.waiter'), value: '服务员' },
+  { label: t('employee.cashier'), value: '收银' },
+  { label: t('employee.dishwasher'), value: '洗碗工' },
+  { label: t('employee.front_desk'), value: '前台' },
+  { label: t('employee.manager'), value: '经理' },
+  { label: t('employee.owner'), value: '老板' },
+];
 
 function genPassword() { return Math.random().toString(36).slice(2, 10); }
-];
 
 function parseStations(raw) { try { return typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []); } catch { return []; } }
 
@@ -98,7 +98,7 @@ const filteredEmployees = computed(() => {
 
 const columns = computed(() => [
   { title: t('employee.name'), key: 'name' },
-  { title: '职位', key: 'position' },
+  { title: t('employee.position'), key: 'position' },
   { title: t('employee.email'), key: 'email' },
   { title: t('employee.type'), key: 'employment_type', render: (row) => t(`employee.${row.employment_type}`) },
   { title: t('employee.hourly_rate'), key: 'base_hourly_rate', render: (row) => '$' + parseFloat(row.base_hourly_rate).toFixed(2) },

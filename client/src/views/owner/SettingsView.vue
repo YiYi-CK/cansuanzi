@@ -4,19 +4,19 @@
     <n-form :model="form" label-placement="left" label-width="130" style="max-width: 500px">
       <n-form-item :label="t('settings.restaurant_name')"><n-input v-model:value="form.restaurant_name" /></n-form-item>
 
-      <n-divider>营业时间</n-divider>
-      <n-form-item label="营业">
+      <n-divider>{{ t('settings.business_hours') }}</n-divider>
+      <n-form-item :label="t('settings.operating')">
         <n-space><input type="time" v-model="form.operating_start" style="padding:6px 10px;border:1px solid var(--n-border-color);border-radius:6px;font-size:14px;background:var(--n-color)" /><span>—</span><input type="time" v-model="form.operating_end" style="padding:6px 10px;border:1px solid var(--n-border-color);border-radius:6px;font-size:14px;background:var(--n-color)" /></n-space>
       </n-form-item>
-      <n-form-item label="午休">
+      <n-form-item :label="t('settings.break')">
         <n-space><input type="time" v-model="form.break_start" style="padding:6px 10px;border:1px solid var(--n-border-color);border-radius:6px;font-size:14px;background:var(--n-color)" /><span>—</span><input type="time" v-model="form.break_end" style="padding:6px 10px;border:1px solid var(--n-border-color);border-radius:6px;font-size:14px;background:var(--n-color)" /></n-space>
       </n-form-item>
-      <n-form-item label="营业日">
+      <n-form-item :label="t('settings.operating_days')">
         <n-checkbox-group v-model:value="form.operating_days"><n-space><n-checkbox v-for="d in dayOptions" :key="d.value" :value="d.value" :label="d.label" /></n-space></n-checkbox-group>
       </n-form-item>
 
-      <n-divider>工位配置</n-divider>
-      <n-form-item label="工位列表"><n-dynamic-tags v-model:value="form.stations" /></n-form-item>
+      <n-divider>{{ t('settings.station_config') }}</n-divider>
+      <n-form-item :label="t('settings.station_list')"><n-dynamic-tags v-model:value="form.stations" /></n-form-item>
 
       <n-divider>{{ t('settings.wage_formula') }}</n-divider>
       <n-alert type="warning" style="margin-bottom: 12px">{{ t('settings.compliance_warning') }}</n-alert>
@@ -32,7 +32,7 @@
       <n-button size="small" @click="form.public_holidays.push({ date: null, name: '' })">{{ t('settings.add_holiday') }}</n-button>
 
       <n-divider>{{ t('settings.language') }}</n-divider>
-      <n-radio-group v-model:value="form.language"><n-radio value="zh">中文</n-radio><n-radio value="en">English</n-radio></n-radio-group>
+      <n-radio-group v-model:value="form.language"><n-radio value="zh">{{ t('settings.lang_zh') }}</n-radio><n-radio value="en">{{ t('settings.lang_en') }}</n-radio></n-radio-group>
 
       <n-form-item style="margin-top: 24px"><n-button type="primary" :loading="saving" @click="saveSettings">{{ t('settings.save_settings') }}</n-button></n-form-item>
     </n-form>
@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMessage } from 'naive-ui';
 import { settingsAPI } from '../../api/endpoints';
@@ -60,8 +60,8 @@ const form = ref({
 });
 
 const dayOptions = [
-  { label: '周一', value: 1 }, { label: '周二', value: 2 }, { label: '周三', value: 3 },
-  { label: '周四', value: 4 }, { label: '周五', value: 5 }, { label: '周六', value: 6 }, { label: '周日', value: 7 },
+  { label: t('schedule.monday'), value: 1 }, { label: t('schedule.tuesday'), value: 2 }, { label: t('schedule.wednesday'), value: 3 },
+  { label: t('schedule.thursday'), value: 4 }, { label: t('schedule.friday'), value: 5 }, { label: t('schedule.saturday'), value: 6 }, { label: t('schedule.sunday'), value: 7 },
 ];
 
 function resetToDefaults() {
