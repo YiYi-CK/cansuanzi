@@ -46,10 +46,15 @@ router.put('/swaps/:id/approve', role('owner', 'manager'), async (req, res) => {
 });
 
 router.put('/swaps/:id/undo', role('owner', 'manager'), async (req, res) => {
-  const swap = await db('shift_swaps').where({ id: req.params.id, status: 'approved' }).first();
-  if (!swap) return res.status(404).json({ error: '没有已通过的换班可撤回' });
-  // 恢复原始员工
-  await db('shifts').where({ id: swap.shift_id }).update({ employee_id: swap.requester_id, status: 'scheduled', updated_at: db.fn.now() });
+  const swap = await db('shift_swaps').where({ id: req.params.id }).first();
+  if (!swap) return res.status(404).json({ error: '换班申请不存在' });
+  if (swap.status === 'pending') return res.status(400).json({ error: '待审批的申请无需撤回' });
+
+  // 如果之前已批准，恢复原始员工的班次
+  if (swap.status === 'approved') {
+    await db('shifts').where({ id: swap.shift_id }).update({ employee_id: swap.requester_id, status: 'scheduled', updated_at: db.fn.now() });
+  }
+  // 驳回的申请直接重置状态，不需要动班次
   await db('shift_swaps').where({ id: req.params.id }).update({ status: 'pending', approver_id: req.user.id, updated_at: db.fn.now() });
   res.json({ ok: true });
 });
