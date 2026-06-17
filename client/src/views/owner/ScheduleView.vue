@@ -121,7 +121,7 @@ const addForm = ref({ employee_id: null, area: '', start_time: '08:00', end_time
 const employeeOpts = computed(() => {
   const date = addForm.value._date || weekDays.value[0]?.date || '';
   return employees.value
-    .filter(e => !isOnLeave(e.id, date))
+    .filter(e => e.active && !isOnLeave(e.id, date))
     .map(e => ({ label: e.name + (isOnLeave(e.id, date) ? ' (请假中)' : ''), value: e.id }));
 });
 
