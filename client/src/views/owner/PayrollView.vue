@@ -37,7 +37,7 @@
     <n-modal v-model:show="showPayModal" preset="card" :title="t('payroll.pay_confirm')" style="width: 420px">
       <div v-if="payTarget">
         <p><strong>{{ payTarget.name }}</strong></p>
-        <p>{{ t('payroll.estimated_wage') }}: <strong style="font-size: 18px; color: #EA580C">${{ Number(payTarget.estimated_wage).toFixed(2) }}</strong></p>
+        <p>{{ t('payroll.payable_amount') }}: <strong style="font-size: 18px; color: #EA580C">${{ payRemaining.toFixed(2) }}</strong></p>
         <p style="font-size: 12px; color: var(--n-text-color-3)">{{ payPeriodStr }}</p>
         <n-divider />
 
@@ -119,6 +119,11 @@ const totalPayAmount = computed(() => {
   return t;
 });
 
+const payRemaining = computed(() => {
+  if (!payTarget.value) return 0;
+  return Math.max(0, payTarget.value.estimated_wage - (payTarget.value.paid_amount || 0));
+});
+
 // 支付状态颜色映射
 function statusType(s) {
   return s === 'paid' ? 'success' : s === 'partially_paid' ? 'warning' : s === 'prepaid' ? 'info' : 'default';
@@ -195,7 +200,8 @@ function openPay(row) {
   payPeriodStr.value = new Date(from).toISOString().split('T')[0] + ' ~ ' + new Date(to).toISOString().split('T')[0];
   payTarget.value = row;
   payCash.value = true;
-  payCashAmount.value = row.estimated_wage;
+  const remaining = row.estimated_wage - (row.paid_amount || 0);
+  payCashAmount.value = remaining > 0 ? remaining : row.estimated_wage;
   payTransfer.value = false;
   payTransferAmount.value = 0;
   showPayModal.value = true;

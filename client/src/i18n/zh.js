@@ -159,6 +159,7 @@ export default {
     weekend_hours: '周末',
     holiday_hours: '假日',
     estimated_wage: '应付工资',
+    payable_amount: '应付金额',
     paid_wage: '已付工资',
     payment_status: '支付状态',
     paid: '已付',

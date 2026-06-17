@@ -159,6 +159,7 @@ export default {
     weekend_hours: 'Weekend',
     holiday_hours: 'Holiday',
     estimated_wage: 'Payable',
+    payable_amount: 'Amount Due',
     paid_wage: 'Paid',
     payment_status: 'Payment Status',
     paid: 'Paid',
