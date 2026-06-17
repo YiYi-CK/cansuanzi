@@ -103,13 +103,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onErrorCaptured, h } from 'vue';
+import { ref, computed, watch, onMounted, onErrorCaptured, h } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 import { useMessage, NButton, NTag } from 'naive-ui';
 import { payrollAPI } from '../../api/endpoints';
 
 const { t } = useI18n();
 const message = useMessage();
+const route = useRoute();
 
 // Tab
 const activeTab = ref('overview');
@@ -364,4 +366,8 @@ function loadAll() {
 }
 
 onMounted(loadAll);
+// 路由变化时（从其他页面回来）强制刷新
+watch(() => route.path, (path) => {
+  if (path === '/reports/payroll') loadAll();
+});
 </script>
