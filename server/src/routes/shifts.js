@@ -55,7 +55,7 @@ router.post('/', role('owner', 'manager'), async (req, res) => {
 
 /** 编辑班次 */
 router.put('/:id', role('owner', 'manager'), async (req, res) => {
-  const { employee_id, start_time, end_time, break_minutes, area } = req.body;
+  const { employee_id, start_time, end_time, break_minutes, area, date } = req.body;
   const updates = {};
   if (employee_id !== undefined) updates.employee_id = employee_id;
   if (start_time) updates.start_time = start_time;
@@ -63,6 +63,18 @@ router.put('/:id', role('owner', 'manager'), async (req, res) => {
   if (break_minutes !== undefined) updates.break_minutes = break_minutes;
   if (area !== undefined) updates.area = area;
   updates.updated_at = db.fn.now();
+
+  // 检查冲突（排除自身）
+  if (employee_id !== undefined && start_time && end_time && date) {
+    const conflict = await db('shifts')
+      .where({ restaurant_id: req.restaurantId, employee_id, date })
+      .where('id', '!=', req.params.id)
+      .where('start_time', '<', end_time)
+      .where('end_time', '>', start_time)
+      .whereIn('status', ['scheduled', 'completed'])
+      .first();
+    if (conflict) return res.status(409).json({ error: '该员工在此时段已有排班' });
+  }
 
   await db('shifts').where({ id: req.params.id, restaurant_id: req.restaurantId }).update(updates);
   res.json({ ok: true });
