@@ -58,6 +58,8 @@ export const expensesAPI = {
 
 export const payrollAPI = {
   get: (date_from, date_to) => client.get('/payroll', { params: { date_from, date_to } }),
+  unpaid: (date_from, date_to) => client.get('/payroll/unpaid', { params: { date_from, date_to } }),
+  pay: (data) => client.post('/payroll/pay', data),
 };
 
 export const dashboardAPI = {
