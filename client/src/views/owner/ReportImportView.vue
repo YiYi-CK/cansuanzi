@@ -6,9 +6,12 @@
       <n-tab-pane name="manual" :tab="t('report.manual_entry')">
         <n-form :model="form" label-placement="left" label-width="80" style="max-width: 400px">
           <n-form-item :label="t('report.date')"><n-date-picker v-model:value="form.date" type="date" /></n-form-item>
-          <n-form-item :label="t('report.total_revenue')"><n-input-number v-model:value="form.total_revenue" :min="0" :step="0.01" style="width: 100%" /></n-form-item>
-          <n-form-item :label="t('report.cash')"><n-input-number v-model:value="form.total_cash" :min="0" :step="0.01" style="width: 100%" /></n-form-item>
-          <n-form-item :label="t('report.card')"><n-input-number v-model:value="form.total_card" :min="0" :step="0.01" style="width: 100%" /></n-form-item>
+          <n-form-item :label="t('report.total_revenue')"><n-input-number v-model:value="form.total_revenue" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
+          <n-form-item :label="t('report.cash')"><n-input-number v-model:value="form.total_cash" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
+          <n-form-item :label="t('report.card')"><n-input-number v-model:value="form.total_card" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
+          <n-form-item :label="长短款">
+            <n-input :value="diffStr" disabled :style="{ color: diffColor }" />
+          </n-form-item>
           <n-form-item :label="t('report.notes')"><n-input v-model:value="form.notes" type="textarea" /></n-form-item>
 
           <n-divider>{{ t('report.expenses') }}</n-divider>
@@ -124,7 +127,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, onErrorCaptured } from 'vue';
+import { ref, computed, watch, onErrorCaptured } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMessage } from 'naive-ui';
 import { reportsAPI, expensesAPI } from '../../api/endpoints';
@@ -149,6 +152,19 @@ const form = ref({
   total_revenue: 0, total_cash: 0, total_card: 0, notes: '',
   expenses: [{ category: 'food', amount: 0, customName: '' }],
 });
+
+// 长短款 = 总营收 - (现金 + 刷卡)
+const diffAmount = computed(() => {
+  const rev = Number(form.value.total_revenue) || 0;
+  const cash = Number(form.value.total_cash) || 0;
+  const card = Number(form.value.total_card) || 0;
+  return rev - cash - card;
+});
+const diffStr = computed(() => {
+  const v = diffAmount.value;
+  return (v >= 0 ? '+' : '') + v.toFixed(2);
+});
+const diffColor = computed(() => diffAmount.value >= 0 ? '#16A34A' : '#DC2626');
 
 const expenseCategoryOptions = [
   { label: '食材', value: 'food' },
