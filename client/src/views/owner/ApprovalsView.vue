@@ -71,7 +71,10 @@
               <br />
               <span v-if="r.approver_name" style="font-size: 12px; color: var(--n-text-color-3)">{{ r.status === 'approved' ? t('approvals.approved_by', { name: r.approver_name }) : t('approvals.rejected_by', { name: r.approver_name }) }}</span>
             </div>
-            <n-button size="tiny" @click="openEdit(r)">✏️ {{ t('common.edit') }}</n-button>
+            <n-space>
+              <n-button size="tiny" @click="openEdit(r)">✏️ {{ t('common.edit') }}</n-button>
+              <n-button size="tiny" type="error" secondary @click="deleteRecord(r)">🗑️</n-button>
+            </n-space>
           </div>
         </n-card>
       </n-tab-pane>
@@ -158,6 +161,19 @@ async function approveSwap(id) { await approvalsAPI.approveSwap(id); message.suc
 async function rejectSwap(id) { await approvalsAPI.rejectSwap(id); message.info(t('approvals.rejected')); fetchData(); }
 async function approveLeave(id) { await approvalsAPI.approveLeave(id); message.success(t('approvals.approved')); fetchData(); }
 async function rejectLeave(id) { await approvalsAPI.rejectLeave(id); message.info(t('approvals.rejected')); fetchData(); }
+
+async function deleteRecord(r) {
+  const confirmed = window.confirm(t('common.delete') + '?');
+  if (!confirmed) return;
+  try {
+    if (r._type === 'swap') await approvalsAPI.deleteSwap(r.id);
+    else await approvalsAPI.deleteLeave(r.id);
+    message.success(t('common.delete_success'));
+    fetchData();
+  } catch (err) {
+    message.error(err.response?.data?.error || t('common.delete_failed'));
+  }
+}
 
 async function undoSwap(id) { await approvalsAPI.undoSwap(id); message.success(t('approvals.undo_success')); fetchData(); }
 async function undoLeave(id) { await approvalsAPI.undoLeave(id); message.success(t('approvals.undo_success')); fetchData(); }

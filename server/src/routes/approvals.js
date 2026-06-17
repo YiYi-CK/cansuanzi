@@ -74,6 +74,13 @@ router.put('/swaps/:id', role('owner', 'manager'), async (req, res) => {
   res.json({ ok: true });
 });
 
+/** 删除换班记录 */
+router.delete('/swaps/:id', role('owner', 'manager'), async (req, res) => {
+  const deleted = await db('shift_swaps').where({ id: req.params.id }).del();
+  if (!deleted) return res.status(404).json({ error: '记录不存在' });
+  res.json({ ok: true });
+});
+
 /** 请假列表 */
 router.get('/leaves', role('owner', 'manager'), async (req, res) => {
   const leaves = await db('leave_requests')
@@ -156,6 +163,13 @@ router.get('/all', role('owner', 'manager'), async (req, res) => {
   ];
   all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   res.json(all);
+});
+
+/** 删除请假记录 */
+router.delete('/leaves/:id', role('owner', 'manager'), async (req, res) => {
+  const deleted = await db('leave_requests').where({ id: req.params.id }).del();
+  if (!deleted) return res.status(404).json({ error: '记录不存在' });
+  res.json({ ok: true });
 });
 
 module.exports = router;
