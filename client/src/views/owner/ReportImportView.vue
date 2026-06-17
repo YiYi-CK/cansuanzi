@@ -62,15 +62,15 @@
               <div style="flex: 1">
                 <strong style="font-size: 15px">{{ r.date }}</strong>
                 <n-space style="margin-top: 4px" size="small">
-                  <n-tag size="small" type="success">营收 ¥{{ (r.total_revenue || 0).toFixed(2) }}</n-tag>
-                  <n-tag size="small">现金 ¥{{ (r.total_cash || 0).toFixed(2) }}</n-tag>
-                  <n-tag size="small">刷卡 ¥{{ (r.total_card || 0).toFixed(2) }}</n-tag>
+                  <n-tag size="small" type="success">营收 $AUD{{ (r.total_revenue || 0).toFixed(2) }}</n-tag>
+                  <n-tag size="small">现金 $AUD{{ (r.total_cash || 0).toFixed(2) }}</n-tag>
+                  <n-tag size="small">刷卡 $AUD{{ (r.total_card || 0).toFixed(2) }}</n-tag>
                 </n-space>
                 <!-- 支出子列表 -->
                 <div v-if="r.expenses && r.expenses.length > 0" style="margin-top: 6px">
                   <span style="font-size: 12px; color: var(--n-text-color-3); margin-right: 6px">支出:</span>
                   <n-tag v-for="e in r.expenses" :key="e.id" size="tiny" style="margin: 2px 4px 2px 0" :bordered="false">
-                    {{ expenseLabel(e.category) }} ¥{{ (e.amount || 0).toFixed(2) }}
+                    {{ expenseLabel(e.category) }} $AUD{{ (e.amount || 0).toFixed(2) }}
                   </n-tag>
                 </div>
                 <div v-if="r.notes" style="margin-top: 4px; font-size: 12px; color: var(--n-text-color-3)">
