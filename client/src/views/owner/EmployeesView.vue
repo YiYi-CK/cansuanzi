@@ -101,7 +101,7 @@ const columns = computed(() => [
   { title: t('employee.position'), key: 'position' },
   { title: t('employee.email'), key: 'email' },
   { title: t('employee.type'), key: 'employment_type', render: (row) => t(`employee.${row.employment_type}`) },
-  { title: t('employee.hourly_rate'), key: 'base_hourly_rate', render: (row) => '$' + parseFloat(row.base_hourly_rate).toFixed(2) },
+  { title: t('employee.hourly_rate'), key: 'base_hourly_rate', render: (row) => '$AUD' + parseFloat(row.base_hourly_rate).toFixed(2) },
   { title: t('employee.status'), key: 'active', render: (row) => h(NTag, { type: row.active ? 'success' : 'error' }, { default: () => row.active ? t('employee.active') : t('employee.inactive') }) },
   { title: '', key: 'actions', render: (row) =>
     row.active

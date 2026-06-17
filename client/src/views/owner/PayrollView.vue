@@ -10,7 +10,7 @@
             <n-data-table :columns="overviewColumns" :data="payroll.employees" :bordered="false" :single-line="false" />
             <n-divider />
             <p style="font-size: 13px; color: var(--n-text-color-3)">
-              {{ t('payroll.total') }}: {{ Number(payroll.total_hours).toFixed(1) }}h — ${{ Number(payroll.total_wage).toFixed(2) }}
+              {{ t('payroll.total') }}: {{ Number(payroll.total_hours).toFixed(1) }}h — $AUD{{ Number(payroll.total_wage).toFixed(2) }}
               <br />{{ t('payroll.loading_hint') }}
             </p>
           </n-spin>
@@ -26,7 +26,7 @@
             <n-data-table v-else :columns="unpaidColumns" :data="unpaid.employees" :bordered="false" :single-line="false" />
             <n-divider v-if="unpaid.employees.length > 0" />
             <p v-if="unpaid.employees.length > 0" style="font-size: 13px; color: var(--n-text-color-3)">
-              {{ t('payroll.total') }}: {{ Number(unpaid.total_hours).toFixed(1) }}h — ${{ Number(unpaid.total_wage).toFixed(2) }}
+              {{ t('payroll.total') }}: {{ Number(unpaid.total_hours).toFixed(1) }}h — $AUD{{ Number(unpaid.total_wage).toFixed(2) }}
             </p>
           </n-spin>
         </n-space>
@@ -51,7 +51,7 @@
     <n-modal v-model:show="showPayModal" preset="card" :title="t('payroll.pay_confirm')" style="width: 420px">
       <div v-if="payTarget">
         <p><strong>{{ payTarget.name }}</strong></p>
-        <p>{{ t('payroll.payable_amount') }}: <strong style="font-size: 18px; color: #EA580C">${{ payRemaining.toFixed(2) }}</strong></p>
+        <p>{{ t('payroll.payable_amount') }}: <strong style="font-size: 18px; color: #EA580C">$AUD{{ payRemaining.toFixed(2) }}</strong></p>
         <p style="font-size: 12px; color: var(--n-text-color-3)">{{ payPeriodStr }}</p>
         <n-divider />
 
@@ -71,7 +71,7 @@
         </n-form-item>
 
         <p style="font-size: 13px; color: var(--n-text-color-3)">
-          {{ t('payroll.total') }}: ${{ totalPayAmount.toFixed(2) }}
+          {{ t('payroll.total') }}: $AUD{{ totalPayAmount.toFixed(2) }}
         </p>
 
         <n-space justify="end" style="margin-top: 16px">
@@ -194,8 +194,8 @@ const overviewColumns = computed(() => [
   { title: t('payroll.weekday_hours'), key: 'weekday_hours' },
   { title: t('payroll.weekend_hours'), key: 'saturday_hours' },
   { title: t('payroll.holiday_hours'), key: 'holiday_hours' },
-  { title: t('payroll.estimated_wage'), key: 'estimated_wage', render: (row) => '$' + Number(row.estimated_wage).toFixed(2) },
-  { title: t('payroll.paid_wage'), key: 'paid_amount', render: (row) => '$' + Number(row.paid_amount || 0).toFixed(2) },
+  { title: t('payroll.estimated_wage'), key: 'estimated_wage', render: (row) => '$AUD' + Number(row.estimated_wage).toFixed(2) },
+  { title: t('payroll.paid_wage'), key: 'paid_amount', render: (row) => '$AUD' + Number(row.paid_amount || 0).toFixed(2) },
   { title: t('payroll.payment_status'), key: 'payment_status', render: (row) => {
     let label = row.payment_status;
     if (label === 'paid') label = t('payroll.paid');
@@ -212,8 +212,8 @@ const overviewColumns = computed(() => [
 const unpaidColumns = computed(() => [
   { title: t('payroll.name'), key: 'name' },
   { title: t('payroll.total_hours'), key: 'total_hours' },
-  { title: t('payroll.estimated_wage'), key: 'estimated_wage', render: (row) => '$' + Number(row.estimated_wage).toFixed(2) },
-  { title: t('payroll.paid_wage'), key: 'paid_amount', render: (row) => '$' + Number(row.paid_amount || 0).toFixed(2) },
+  { title: t('payroll.estimated_wage'), key: 'estimated_wage', render: (row) => '$AUD' + Number(row.estimated_wage).toFixed(2) },
+  { title: t('payroll.paid_wage'), key: 'paid_amount', render: (row) => '$AUD' + Number(row.paid_amount || 0).toFixed(2) },
   { title: t('payroll.payment_status'), key: 'payment_status', render: (row) => {
     if (!row.paid_amount || row.paid_amount <= 0) return h(NTag, { type: 'default', size: 'small' }, { default: () => t('payroll.unpaid') });
     return h(NTag, { type: 'warning', size: 'small' }, { default: () => t('payroll.partially_paid') });
@@ -234,7 +234,7 @@ const unpaidColumns = computed(() => [
 
 const paymentsColumns = computed(() => [
   { title: t('payroll.employee'), key: 'employee_name' },
-  { title: t('payroll.pay'), key: 'amount', render: (row) => '$' + Number(row.amount).toFixed(2) },
+  { title: t('payroll.pay'), key: 'amount', render: (row) => '$AUD' + Number(row.amount).toFixed(2) },
   { title: t('payroll.method'), key: 'method', render: (row) => row.method === 'cash' ? t('payroll.cash') : t('payroll.transfer') },
   { title: t('payroll.date'), key: 'paid_at', render: (row) => row.paid_at ? new Date(row.paid_at).toLocaleDateString() : '' },
   { title: t('payroll.period'), key: 'period', render: (row) => row.period_start + ' ~ ' + row.period_end },

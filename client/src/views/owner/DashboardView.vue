@@ -40,7 +40,7 @@
             <div v-for="item in data.breakdown" :key="item.category" style="margin-bottom: 12px">
               <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px">
                 <span>{{ item.category }}</span>
-                <span>${{ item.amount.toFixed(2) }} ({{ item.percentage }}%)</span>
+                <span>$AUD{{ item.amount.toFixed(2) }} ({{ item.percentage }}%)</span>
               </div>
               <n-progress type="line" :percentage="item.percentage" :color="colors[item.category] || '#EA580C'" :height="8" :border-radius="4" />
             </div>
@@ -55,7 +55,7 @@
             </div>
             <div v-else style="display: flex; align-items: flex-end; gap: 8px; height: 150px">
               <div v-for="item in data.trend" :key="item.date" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end">
-                <span style="font-size: 10px; margin-bottom: 4px">{{ item.revenue > 0 ? '$' + Number(item.revenue).toFixed(2) : '' }}</span>
+                <span style="font-size: 10px; margin-bottom: 4px">{{ item.revenue > 0 ? '$AUD' + Number(item.revenue).toFixed(2) : '' }}</span>
                 <div :style="{ height: Math.max(item.revenue / maxRevenue * 100, 4) + '%', width: '100%', background: '#EA580C', borderRadius: '4px 4px 0 0', minHeight: '4px' }" />
                 <span style="font-size: 10px; margin-top: 4px">{{ formatDay(item.date) }}</span>
               </div>

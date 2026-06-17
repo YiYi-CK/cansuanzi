@@ -16,6 +16,11 @@
         </n-form-item>
         <n-form-item label="邀请码">
           <n-input v-model:value="inviteCode" placeholder="请输入邀请码" />
+          <template #feedback>
+            <span style="font-size: 11px; color: var(--n-text-color-3)">
+              没有邀请码？发邮件到 yiyi.openclaw@gmail.com 获取 📧
+            </span>
+          </template>
         </n-form-item>
         <n-button type="primary" block :loading="loading" @click="handleRegister">{{ t('auth.register') }}</n-button>
       </n-form>
