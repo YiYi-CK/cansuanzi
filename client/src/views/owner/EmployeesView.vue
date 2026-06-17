@@ -32,10 +32,10 @@
             <n-space><n-checkbox v-for="s in stationList" :key="s" :value="s" :label="s" /></n-space>
           </n-checkbox-group>
         </n-form-item>
-        <n-form-item v-if="!editing" :label="t('auth.password')"><n-input v-model:value="form.password" type="password" /></n-form-item>
+        <n-form-item v-if="!editing" :label="t('auth.password')"><n-input v-model:value="form.password" type="password" autocomplete="new-password" /></n-form-item>
         <n-form-item v-if="editing" :label="t('employee.new_password')">
           <n-space>
-            <n-input v-model:value="form.password" type="password" :placeholder="t('employee.pwd_placeholder')" style="width: 180px" />
+            <n-input v-model:value="form.password" type="password" autocomplete="new-password" :placeholder="t('employee.pwd_placeholder')" style="width: 180px" />
             <n-button size="small" @click="form.password = genPassword(); generateTip = true">{{ t('employee.gen_password') }}</n-button>
           </n-space>
           <div v-if="generateTip" style="font-size:12px;color:#EA580C;margin-top:4px">{{ t('employee.new_password') }}: {{ form.password }}</div>
