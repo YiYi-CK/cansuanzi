@@ -31,6 +31,17 @@
           </n-spin>
         </n-space>
       </n-tab-pane>
+
+      <!-- Tab 3: 支付记录 -->
+      <n-tab-pane name="payments" :tab="t('payroll.payments_tab')">
+        <n-space vertical>
+          <n-date-picker v-model:value="paymentsDateRange" type="daterange" @update:value="fetchPayments" />
+          <n-spin :show="paymentsLoading">
+            <n-empty v-if="payments.length === 0" :description="t('payroll.no_payments')" style="padding: 40px" />
+            <n-data-table v-else :columns="paymentsColumns" :data="payments" :bordered="false" :single-line="false" />
+          </n-spin>
+        </n-space>
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 支付弹窗 -->
@@ -65,6 +76,25 @@
           <n-button type="primary" :loading="paying" :disabled="totalPayAmount <= 0" @click="confirmPay">{{ t('payroll.pay') }}</n-button>
         </n-space>
       </div>
+    </n-modal>
+
+    <!-- 编辑支付记录弹窗 -->
+    <n-modal v-model:show="showEditPayment" preset="card" :title="t('payroll.edit_payment')" style="width: 380px">
+      <n-form v-if="editPaymentTarget" :model="editPaymentTarget" label-placement="left" label-width="70">
+        <p><strong>{{ editPaymentTarget.employee_name }}</strong></p>
+        <p style="font-size: 12px; color: var(--n-text-color-3)">{{ editPaymentTarget.period_start }} ~ {{ editPaymentTarget.period_end }}</p>
+        <n-divider />
+        <n-form-item :label="t('payroll.pay')">
+          <n-input-number v-model:value="editPaymentTarget.amount" :min="0" :step="0.01" :precision="2" style="width: 180px" />
+        </n-form-item>
+        <n-form-item :label="t('payroll.method')">
+          <n-select v-model:value="editPaymentTarget.method" :options="methodOptions" style="width: 150px" />
+        </n-form-item>
+        <n-space justify="end" style="margin-top: 16px">
+          <n-button @click="showEditPayment = false">{{ t('common.cancel') }}</n-button>
+          <n-button type="primary" :loading="editPaymentSaving" @click="saveEditPayment">{{ t('common.save') }}</n-button>
+        </n-space>
+      </n-form>
     </n-modal>
   </div>
 </template>
@@ -184,6 +214,51 @@ async function fetchOverview() {
   } catch (err) { console.error(err); } finally { loading.value = false; }
 }
 
+async function fetchPayments() {
+  paymentsLoading.value = true;
+  try {
+    const [from, to] = paymentsDateRange.value || getThisWeek();
+    payments.value = (await payrollAPI.payments(
+      new Date(from).toISOString().split('T')[0],
+      new Date(to).toISOString().split('T')[0],
+    )).data;
+  } catch (err) { console.error(err); } finally { paymentsLoading.value = false; }
+}
+
+function openEditPayment(row) {
+  editPaymentTarget.value = { ...row };
+  showEditPayment.value = true;
+}
+
+async function saveEditPayment() {
+  editPaymentSaving.value = true;
+  try {
+    await payrollAPI.updatePayment(editPaymentTarget.value.id, {
+      amount: editPaymentTarget.value.amount,
+      method: editPaymentTarget.value.method,
+    });
+    message.success(t('common.save_success'));
+    showEditPayment.value = false;
+    fetchPayments();
+  } catch (err) {
+    message.error(err.response?.data?.error || t('common.save_failed'));
+  } finally {
+    editPaymentSaving.value = false;
+  }
+}
+
+async function deletePayment(row) {
+  const confirmed = window.confirm(t('payroll.delete_payment_confirm'));
+  if (!confirmed) return;
+  try {
+    await payrollAPI.deletePayment(row.id);
+    message.success(t('common.delete_success'));
+    fetchPayments();
+  } catch (err) {
+    message.error(err.response?.data?.error || t('common.delete_failed'));
+  }
+}
+
 async function fetchUnpaid() {
   unpaidLoading.value = true;
   try {
@@ -236,7 +311,9 @@ onMounted(() => {
   const week = getThisWeek();
   dateRange.value = week;
   unpaidDateRange.value = week;
+  paymentsDateRange.value = week;
   fetchOverview();
   fetchUnpaid();
+  fetchPayments();
 });
 </script>

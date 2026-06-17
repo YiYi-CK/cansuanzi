@@ -60,6 +60,9 @@ export const payrollAPI = {
   get: (date_from, date_to) => client.get('/payroll', { params: { date_from, date_to } }),
   unpaid: (date_from, date_to) => client.get('/payroll/unpaid', { params: { date_from, date_to } }),
   pay: (data) => client.post('/payroll/pay', data),
+  payments: (date_from, date_to) => client.get('/payroll/payments', { params: { date_from, date_to } }),
+  updatePayment: (id, data) => client.put(`/payroll/payments/${id}`, data),
+  deletePayment: (id) => client.delete(`/payroll/payments/${id}`),
 };
 
 export const dashboardAPI = {
