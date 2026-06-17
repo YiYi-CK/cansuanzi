@@ -131,6 +131,7 @@ const overviewColumns = computed(() => [
   { title: t('payroll.weekend_hours'), key: 'saturday_hours' },
   { title: t('payroll.holiday_hours'), key: 'holiday_hours' },
   { title: t('payroll.estimated_wage'), key: 'estimated_wage', render: (row) => '$' + Number(row.estimated_wage).toFixed(2) },
+  { title: t('payroll.paid_wage'), key: 'paid_amount', render: (row) => '$' + Number(row.paid_amount || 0).toFixed(2) },
   { title: t('payroll.payment_status'), key: 'payment_status', render: (row) => {
     let label = row.payment_status;
     if (label === 'paid') label = t('payroll.paid');
@@ -148,9 +149,10 @@ const unpaidColumns = computed(() => [
   { title: t('payroll.name'), key: 'name' },
   { title: t('payroll.total_hours'), key: 'total_hours' },
   { title: t('payroll.estimated_wage'), key: 'estimated_wage', render: (row) => '$' + Number(row.estimated_wage).toFixed(2) },
-  { title: t('payroll.payment_status'), key: 'paid_amount', render: (row) => {
+  { title: t('payroll.paid_wage'), key: 'paid_amount', render: (row) => '$' + Number(row.paid_amount || 0).toFixed(2) },
+  { title: t('payroll.payment_status'), key: 'payment_status', render: (row) => {
     if (!row.paid_amount || row.paid_amount <= 0) return h(NTag, { type: 'default', size: 'small' }, { default: () => t('payroll.unpaid') });
-    return '$' + Number(row.paid_amount).toFixed(2) + ' / ' + t('payroll.partially_paid');
+    return h(NTag, { type: 'warning', size: 'small' }, { default: () => t('payroll.partially_paid') });
   }},
   { title: '', key: 'actions', render: (row) =>
     h(NButton, { size: 'small', type: 'primary', onClick: () => {
