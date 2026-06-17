@@ -161,7 +161,7 @@ const diffAmount = computed(() => {
   const rev = Number(form.value.total_revenue) || 0;
   const cash = Number(form.value.total_cash) || 0;
   const card = Number(form.value.total_card) || 0;
-  return rev - cash - card;
+  return cash + card - rev;
 });
 const diffStr = computed(() => {
   const v = diffAmount.value;
@@ -174,7 +174,7 @@ const editDiffAmount = computed(() => {
   const rev = Number(editForm.value.total_revenue) || 0;
   const cash = Number(editForm.value.total_cash) || 0;
   const card = Number(editForm.value.total_card) || 0;
-  return rev - cash - card;
+  return cash + card - rev;
 });
 const editDiffStr = computed(() => {
   const v = editDiffAmount.value;
