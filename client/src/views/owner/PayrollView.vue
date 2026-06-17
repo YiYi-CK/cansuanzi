@@ -140,7 +140,7 @@ const overviewColumns = computed(() => [
     return h(NTag, { type: statusType(row.payment_status), size: 'small' }, { default: () => label });
   }},
   { title: '', key: 'actions', render: (row) =>
-    row.payment_status !== 'paid' ? h(NButton, { size: 'small', type: 'primary', onClick: () => openPay(row) }, { default: () => t('payroll.pay') }) : null,
+    ['unpaid', 'partially_paid'].includes(row.payment_status) ? h(NButton, { size: 'small', type: 'primary', onClick: () => openPay(row) }, { default: () => t('payroll.pay') }) : null,
   },
 ]);
 
