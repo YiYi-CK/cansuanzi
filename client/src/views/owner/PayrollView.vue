@@ -121,6 +121,14 @@ const unpaidLoading = ref(false);
 const unpaidDateRange = ref(null);
 const unpaid = ref({ employees: [], total_hours: 0, total_wage: 0 });
 
+// Tab 3
+const paymentsLoading = ref(false);
+const paymentsDateRange = ref(null);
+const payments = ref([]);
+const showEditPayment = ref(false);
+const editPaymentTarget = ref(null);
+const editPaymentSaving = ref(false);
+
 // 支付弹窗
 const methodOptions = [
   { label: t('payroll.cash'), value: 'cash' },
@@ -210,6 +218,20 @@ const unpaidColumns = computed(() => [
       payTransferAmount.value = 0;
       showPayModal.value = true;
     }}, { default: () => t('payroll.pay') }),
+  },
+]);
+
+const paymentsColumns = computed(() => [
+  { title: t('payroll.employee'), key: 'employee_name' },
+  { title: t('payroll.pay'), key: 'amount', render: (row) => '$' + Number(row.amount).toFixed(2) },
+  { title: t('payroll.method'), key: 'method', render: (row) => row.method === 'cash' ? t('payroll.cash') : t('payroll.transfer') },
+  { title: t('payroll.date'), key: 'paid_at', render: (row) => row.paid_at ? new Date(row.paid_at).toLocaleDateString() : '' },
+  { title: t('payroll.period'), key: 'period', render: (row) => row.period_start + ' ~ ' + row.period_end },
+  { title: '', key: 'actions', render: (row) =>
+    h('span', null, [
+      h(NButton, { size: 'tiny', style: 'margin-right: 6px', onClick: () => openEditPayment(row) }, { default: () => t('common.edit') }),
+      h(NButton, { size: 'tiny', type: 'error', secondary: true, onClick: () => deletePayment(row) }, { default: () => t('common.delete') }),
+    ])
   },
 ]);
 
