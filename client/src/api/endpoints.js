@@ -24,15 +24,18 @@ export const shiftsAPI = {
 };
 
 export const approvalsAPI = {
+  all: () => client.get('/approvals/all'),
   swaps: () => client.get('/approvals/swaps'),
   createSwap: (data) => client.post('/approvals/swaps', data),
   approveSwap: (id) => client.put(`/approvals/swaps/${id}/approve`),
   rejectSwap: (id) => client.put(`/approvals/swaps/${id}/reject`),
+  updateSwap: (id, data) => client.put(`/approvals/swaps/${id}`, data),
   undoSwap: (id) => client.put(`/approvals/swaps/${id}/undo`),
   leaves: () => client.get('/approvals/leaves'),
   createLeave: (data) => client.post('/approvals/leaves', data),
   approveLeave: (id) => client.put(`/approvals/leaves/${id}/approve`),
   rejectLeave: (id) => client.put(`/approvals/leaves/${id}/reject`),
+  updateLeave: (id, data) => client.put(`/approvals/leaves/${id}`, data),
   undoLeave: (id) => client.put(`/approvals/leaves/${id}/undo`),
 };
 

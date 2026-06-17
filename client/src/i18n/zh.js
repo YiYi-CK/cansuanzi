@@ -120,6 +120,11 @@ export default {
     request_swap: '申请换班',
     request_leave: '申请请假',
     reason: '理由',
+    records_tab: '审批记录',
+    edit_record: '编辑审批',
+    no_records: '暂无审批记录',
+    type_swap: '换班',
+    type_leave: '请假',
   },
   report: {
     import_daily: '导入日报',

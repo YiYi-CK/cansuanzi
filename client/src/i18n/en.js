@@ -120,6 +120,11 @@ export default {
     request_swap: 'Request Swap',
     request_leave: 'Request Leave',
     reason: 'Reason',
+    records_tab: 'Records',
+    edit_record: 'Edit Record',
+    no_records: 'No records',
+    type_swap: 'Swap',
+    type_leave: 'Leave',
   },
   report: {
     import_daily: 'Import Daily Report',
