@@ -1,6 +1,6 @@
 <template>
   <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--n-color-body)">
-    <n-card style="width: 400px" title="重置密码">
+    <n-card class="auth-card" style="max-width: 400px; width: 90vw" title="重置密码">
       <n-form v-if="!reset">
         <n-form-item label="新密码">
           <n-input v-model:value="password" type="password" placeholder="输入新密码" />

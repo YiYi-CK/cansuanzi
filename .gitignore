@@ -4,3 +4,7 @@ node_modules/\ndist/\n.env\n*.log
 server/node_modules/
 client/node_modules/
 data/
+dist.bak/
+dist.bak2/
+cansuanzi.tar.gz
+.env.backup

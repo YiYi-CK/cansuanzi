@@ -1,30 +1,32 @@
 <template>
   <n-layout style="min-height: 100vh">
-    <n-layout-header bordered style="padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between">
-      <div style="display: flex; align-items: center; gap: 8px">
+    <n-layout-header bordered class="app-header">
+      <div class="header-left">
+        <n-button class="mobile-menu-btn" @click="drawerOpen = true" quaternary>
+          <n-icon size="22"><MenuOutline /></n-icon>
+        </n-button>
         <n-icon size="24" color="#EA580C"><RestaurantOutline /></n-icon>
-        <span style="font-size: 18px; font-weight: 700">{{ t('common.app_name') }}</span>
+        <span class="app-title">{{ t('common.app_name') }}</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 12px">
-        <n-button @click="toggleDark">
+      <div class="header-right">
+        <n-button @click="toggleDark" quaternary>
           <n-icon><MoonOutline v-if="!isDark" /><SunnyOutline v-else /></n-icon>
         </n-button>
         <n-dropdown :options="userOptions" @select="handleUserAction">
-          <n-button text>{{ auth.user?.name }}</n-button>
+          <n-button text class="user-name">{{ auth.user?.name }}</n-button>
         </n-dropdown>
       </div>
     </n-layout-header>
-    <n-layout has-sider>
-      <n-layout-sider bordered collapse-mode="width" :collapsed-width="64" :width="200" :collapsed="collapsed">
-        <n-menu
-          :collapsed="collapsed"
-          :collapsed-width="64"
-          :options="menuOptions"
-          :value="currentRoute"
-          @update:value="navigate"
-        />
+    <n-layout has-sider class="layout-body">
+      <n-layout-sider class="desktop-sider" bordered collapse-mode="width" :collapsed-width="64" :width="200" :collapsed="collapsed">
+        <n-menu :collapsed="collapsed" :collapsed-width="64" :options="menuOptions" :value="currentRoute" @update:value="navigate" />
       </n-layout-sider>
-      <n-layout-content style="padding: 24px">
+      <n-drawer v-model:show="drawerOpen" :width="240" placement="left">
+        <n-drawer-content :title="auth.user?.name || t('common.app_name')" closable>
+          <n-menu :options="menuOptions" :value="currentRoute" @update:value="(k) => { navigate(k); drawerOpen = false; }" />
+        </n-drawer-content>
+      </n-drawer>
+      <n-layout-content class="app-content">
         <router-view />
       </n-layout-content>
     </n-layout>
@@ -41,6 +43,7 @@ import {
   RestaurantOutline, MoonOutline, SunnyOutline,
   GridOutline, PeopleOutline, CalendarOutline, CheckmarkCircleOutline,
   CloudUploadOutline, CashOutline, SettingsOutline,
+  MenuOutline,
 } from '@vicons/ionicons5';
 
 const { t } = useI18n();
@@ -48,6 +51,7 @@ const router = useRouter();
 const route = useRoute();
 const auth = useAuthStore();
 const collapsed = ref(false);
+const drawerOpen = ref(false);
 
 const isDark = computed(() => localStorage.getItem('darkMode') === 'true');
 const toggleDark = () => {
@@ -77,11 +81,28 @@ const userOptions = [
 const navigate = (key) => router.push(key);
 
 const handleUserAction = (key) => {
-  if (key === 'logout') {
-    auth.logout();
-    router.push('/login');
-  } else if (key === 'my-schedule') {
-    router.push('/my/schedule');
-  }
+  if (key === 'logout') { auth.logout(); router.push('/login'); }
+  else if (key === 'my-schedule') { router.push('/my/schedule'); }
 };
 </script>
+
+<style scoped>
+.app-header {
+  padding: 0 12px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 8px; }
+.header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.app-title { font-size: 18px; font-weight: 700; white-space: nowrap; }
+.desktop-sider { display: none; }
+.mobile-menu-btn { display: flex; }
+@media (min-width: 769px) {
+  .app-header { padding: 0 24px; }
+  .mobile-menu-btn { display: none; }
+  .desktop-sider { display: block; }
+}
+.user-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>

@@ -1,6 +1,6 @@
 <template>
   <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--n-color-body)">
-    <n-card style="width: 380px" :title="t('auth.login')">
+    <n-card class="auth-card" style="max-width: 380px; width: 90vw" :title="t('auth.login')">
       <n-form @submit.prevent="handleLogin">
         <n-form-item :label="t('auth.email')">
           <n-input v-model:value="email" type="email" :placeholder="t('auth.email')" />

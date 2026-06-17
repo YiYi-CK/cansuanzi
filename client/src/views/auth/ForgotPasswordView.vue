@@ -1,6 +1,6 @@
 <template>
   <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--n-color-body)">
-    <n-card style="width: 400px" title="找回密码">
+    <n-card class="auth-card" style="max-width: 400px; width: 90vw" title="找回密码">
       <n-form v-if="!sent">
         <n-form-item label="邮箱">
           <n-input v-model:value="email" type="email" placeholder="输入注册时使用的邮箱" />

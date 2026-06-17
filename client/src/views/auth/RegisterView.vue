@@ -1,6 +1,6 @@
 <template>
   <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--n-color-body)">
-    <n-card style="width: 400px" :title="t('auth.register')">
+    <n-card class="auth-card" style="max-width: 400px; width: 90vw" :title="t('auth.register')">
       <n-form>
         <n-form-item :label="t('auth.restaurant_name')">
           <n-input v-model:value="restaurantName" />
