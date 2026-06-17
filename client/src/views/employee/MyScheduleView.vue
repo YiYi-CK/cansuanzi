@@ -1,6 +1,11 @@
 <template>
   <div>
-    <n-h2 style="margin-top: 0">{{ t('nav.my_schedule') }}</n-h2>
+    <n-space justify="space-between" align="center" style="margin-bottom: 12px">
+      <n-h2 style="margin-top: 0; margin-bottom: 0">{{ t('nav.my_schedule') }}</n-h2>
+      <n-button v-if="canDashboard" @click="$router.push('/dashboard')">
+        📊 {{ t('nav.dashboard') }}
+      </n-button>
+    </n-space>
     <n-spin :show="loading">
       <n-empty v-if="shifts.length === 0" description="本周暂无排班" style="padding: 40px" />
       <n-list v-else>
@@ -15,13 +20,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useAuthStore } from '../../store/auth';
 import { shiftsAPI } from '../../api/endpoints';
 
 const { t } = useI18n();
+const auth = useAuthStore();
 const loading = ref(false);
 const shifts = ref([]);
+
+const canDashboard = computed(() => auth.user?.role === 'owner' || auth.user?.role === 'manager');
 
 onMounted(async () => {
   loading.value = true;
