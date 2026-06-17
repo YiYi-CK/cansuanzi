@@ -13,7 +13,9 @@ module.exports = async (req, res, next) => {
     if (!user || !user.active) {
       return res.status(401).json({ error: '用户不存在或已禁用' });
     }
-    req.user = user;
+    // 根据职位（position）映射有效角色
+    const effectiveRole = user.position === '老板' ? 'owner' : user.position === '经理' ? 'manager' : user.role;
+    req.user = { ...user, role: effectiveRole };
     req.restaurantId = user.restaurant_id;
     next();
   } catch (err) {

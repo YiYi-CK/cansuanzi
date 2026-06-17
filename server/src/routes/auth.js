@@ -64,8 +64,7 @@ router.post('/login', async (req, res) => {
 
 /** 获取当前用户 */
 router.get('/me', require('../middleware/auth'), async (req, res) => {
-  const effectiveRole = req.user.position === '老板' ? 'owner' : req.user.position === '经理' ? 'manager' : req.user.role;
-  res.json({ id: req.user.id, name: req.user.name, email: req.user.email, role: effectiveRole, position: req.user.position, restaurantId: req.user.restaurant_id });
+  res.json({ id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role, position: req.user.position, restaurantId: req.user.restaurant_id });
 });
 
 /** 忘记密码 — 生成重置令牌（开发模式直接返回链接） */
