@@ -6,8 +6,8 @@ const { DEFAULTS } = require('../utils/payroll');
 const router = require('express').Router();
 router.use(auth);
 
-/** 获取设置 */
-router.get('/', role('owner'), async (req, res) => {
+/** 获取设置（经理可读，仅老板可写） */
+router.get('/', role('owner', 'manager'), async (req, res) => {
   let settings = await db('restaurant_settings').where({ restaurant_id: req.restaurantId }).first();
   if (!settings) {
     await db('restaurant_settings').insert({ restaurant_id: req.restaurantId });
