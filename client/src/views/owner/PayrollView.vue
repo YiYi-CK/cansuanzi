@@ -272,6 +272,8 @@ async function saveEditPayment() {
     message.success(t('common.save_success'));
     showEditPayment.value = false;
     fetchPayments();
+    fetchOverview();
+    fetchUnpaid();
   } catch (err) {
     message.error(err.response?.data?.error || t('common.save_failed'));
   } finally {
@@ -286,6 +288,8 @@ async function deletePayment(row) {
     await payrollAPI.deletePayment(row.id);
     message.success(t('common.delete_success'));
     fetchPayments();
+    fetchOverview();
+    fetchUnpaid();
   } catch (err) {
     message.error(err.response?.data?.error || t('common.delete_failed'));
   }
@@ -332,6 +336,7 @@ async function confirmPay() {
     showPayModal.value = false;
     fetchOverview();
     fetchUnpaid();
+    fetchPayments();
   } catch (err) {
     message.error(err.response?.data?.error || t('payroll.pay_failed'));
   } finally {
