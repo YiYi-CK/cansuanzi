@@ -2,10 +2,11 @@
   <div>
     <n-h2 style="margin-top: 0">{{ t('nav.schedule') }}</n-h2>
 
-    <n-space style="margin-bottom: 16px">
-      <n-date-picker v-model:value="weekStart" type="date" @update:value="fetchShifts" />
-      <n-button @click="copyLastWeek" :loading="copyLoading">{{ t('schedule.copy_last_week') }}</n-button>
-      <n-button @click="downloadPDF">📥 {{ t('schedule.download_excel') }}</n-button>
+    <n-space style="margin-bottom: 16px" wrap>
+      <n-date-picker v-model:value="weekStart" type="date" @update:value="fetchShifts" style="min-width: 0" />
+      <n-button size="small" type="primary" @click="quickAdd">+ 排班</n-button>
+      <n-button size="small" @click="copyLastWeek" :loading="copyLoading">{{ t('schedule.copy_last_week') }}</n-button>
+      <n-button size="small" @click="downloadPDF">📥 {{ t('schedule.download_excel') }}</n-button>
     </n-space>
 
     <n-spin :show="loading">
@@ -57,17 +58,7 @@
           </table>
         </div>
 
-        <!-- [+ 排班] -->
-        <div style="overflow-x: auto; margin-top: 4px">
-          <table style="width: 100%; border-collapse: collapse">
-            <tr>
-              <td style="width: 70px"></td>
-              <td v-for="d in weekDays" :key="'btn-'+d.date" style="padding: 8px; text-align: center">
-                <n-button size="tiny" type="primary" dashed @click="openAdd(d.date)">+ 排班</n-button>
-              </td>
-            </tr>
-          </table>
-        </div>
+
       </template>
     </n-spin>
 
@@ -226,6 +217,7 @@ function shiftBlockStyle(shift, slotTime) {
 function toMinutes(t) { if (!t || typeof t !== 'string') return 0; const p = t.split(':'); if (p.length !== 2) return 0; const [h, m] = p.map(Number); if (isNaN(h) || isNaN(m)) return 0; return h * 60 + m; }
 
 function openAdd(date) { editingShift.value = null; addForm.value = { employee_id: null, area: '', start_time: (settings.value?.operating_start || '08:00'), end_time: (settings.value?.operating_end || '14:00'), _date: date }; showAdd.value = true; }
+function quickAdd() { openAdd(weekDays.value[0]?.date || new Date().toISOString().split('T')[0]); }
 function openEdit(shift) { editingShift.value = shift; addForm.value = { employee_id: shift.employee_id, area: shift.area || '', start_time: shift.start_time, end_time: shift.end_time, _date: shift.date }; showAdd.value = true; }
 
 async function doSave() {
