@@ -122,6 +122,16 @@ const unpaidDateRange = ref(null);
 const unpaid = ref({ employees: [], total_hours: 0, total_wage: 0 });
 
 // 支付弹窗
+const methodOptions = [
+  { label: t('payroll.cash'), value: 'cash' },
+  { label: t('payroll.transfer'), value: 'transfer' },
+];
+
+onErrorCaptured((err, instance, info) => {
+  console.error('PayrollView error:', err, info);
+  return false;
+});
+
 const showPayModal = ref(false);
 const payTarget = ref(null);
 const payCash = ref(true);
