@@ -39,7 +39,9 @@ async function handleLogin() {
   try {
     await auth.login(email.value, password.value);
     message.success('登录成功');
-    router.push(auth.isOwner ? '/dashboard' : '/my/schedule');
+    if (auth.isOwner) router.push('/dashboard');
+    else if (auth.user?.role === 'manager') router.push('/manager/schedule');
+    else router.push('/my/schedule');
   } catch (err) {
     message.error(err.response?.data?.error || '登录失败');
   } finally {
