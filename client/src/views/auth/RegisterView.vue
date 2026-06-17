@@ -14,6 +14,9 @@
         <n-form-item :label="t('auth.password')">
           <n-input v-model:value="password" type="password" />
         </n-form-item>
+        <n-form-item label="邀请码">
+          <n-input v-model:value="inviteCode" placeholder="请输入邀请码" />
+        </n-form-item>
         <n-button type="primary" block :loading="loading" @click="handleRegister">{{ t('auth.register') }}</n-button>
       </n-form>
       <p style="text-align: center; margin-top: 16px">
@@ -39,12 +42,13 @@ const name = ref('');
 const email = ref('');
 const password = ref('');
 const restaurantName = ref('');
+const inviteCode = ref('');
 const loading = ref(false);
 
 async function handleRegister() {
   loading.value = true;
   try {
-    await auth.register({ name: name.value, email: email.value, password: password.value, restaurant_name: restaurantName.value });
+    await auth.register({ name: name.value, email: email.value, password: password.value, restaurant_name: restaurantName.value, invite_code: inviteCode.value });
     message.success('注册成功');
     router.push('/dashboard');
   } catch (err) {

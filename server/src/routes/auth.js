@@ -7,8 +7,9 @@ const router = require('express').Router();
 /** 注册（创建餐馆 + owner） */
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, restaurant_name } = req.body;
+    const { name, email, password, restaurant_name, invite_code } = req.body;
     if (!email || !password || !name) return res.status(400).json({ error: '姓名、邮箱和密码为必填' });
+    if (invite_code !== process.env.INVITE_CODE) return res.status(403).json({ error: '邀请码无效' });
 
     const exists = await db('employees').where({ email }).first();
     if (exists) return res.status(409).json({ error: '该邮箱已注册' });
