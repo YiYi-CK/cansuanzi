@@ -104,10 +104,12 @@ const columns = computed(() => [
   { title: t('employee.hourly_rate'), key: 'base_hourly_rate', render: (row) => '$' + parseFloat(row.base_hourly_rate).toFixed(2) },
   { title: t('employee.status'), key: 'active', render: (row) => h(NTag, { type: row.active ? 'success' : 'error' }, { default: () => row.active ? t('employee.active') : t('employee.inactive') }) },
   { title: '', key: 'actions', render: (row) =>
-    h('span', null, [
-      h(NButton, { size: 'small', style: 'margin-right: 6px', onClick: () => editEmployee(row) }, { default: () => t('common.edit') }),
-      row.active ? h(NButton, { size: 'small', type: 'error', secondary: true, onClick: () => deleteEmployee(row) }, { default: () => t('common.delete') }) : null,
-    ])
+    row.active
+      ? h('span', null, [
+          h(NButton, { size: 'small', style: 'margin-right: 6px', onClick: () => editEmployee(row) }, { default: () => t('common.edit') }),
+          h(NButton, { size: 'small', type: 'error', secondary: true, onClick: () => deleteEmployee(row) }, { default: () => t('common.delete') }),
+        ])
+      : h(NButton, { size: 'small', type: 'primary', onClick: () => restoreEmployee(row) }, { default: () => '↩ ' + t('employee.restore') })
   },
 ]);
 
@@ -123,6 +125,16 @@ function openNewEmployee() {
   form.value = { name: "", email: "", phone: "", position: "", station_ids: [], employment_type: "casual", base_hourly_rate: 0, password: "" };
   showAdd.value = true;
 }
+async function restoreEmployee(emp) {
+  try {
+    await employeesAPI.update(emp.id, { active: true });
+    message.success(t('employee.restore') + ' ' + emp.name);
+    fetchEmployees();
+  } catch (err) {
+    message.error(err.response?.data?.error || t('common.save_failed'));
+  }
+}
+
 async function deleteEmployee(emp) {
   const confirmed = window.confirm(t('common.delete') + ' ' + emp.name + '?');
   if (!confirmed) return;

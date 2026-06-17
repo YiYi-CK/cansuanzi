@@ -73,6 +73,7 @@ export default {
     cleaner: 'Cleaner',
     dishwasher: 'Dishwasher',
     stations: 'Work Stations',
+    restore: 'Restore',
     new_password: 'New Password',
     gen_password: 'Generate Password',
     pwd_placeholder: 'Leave blank to keep current',

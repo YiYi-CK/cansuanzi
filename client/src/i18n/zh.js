@@ -73,6 +73,7 @@ export default {
     cleaner: '清洁',
     dishwasher: '洗碗工',
     stations: '可做工位',
+    restore: '恢复',
     new_password: '新密码',
     gen_password: '生成随机密码',
     pwd_placeholder: '留空不修改',
