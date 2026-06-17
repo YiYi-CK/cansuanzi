@@ -353,7 +353,7 @@ async function confirmPay() {
   }
 }
 
-onMounted(() => {
+function loadAll() {
   const week = getThisWeek();
   dateRange.value = week;
   unpaidDateRange.value = week;
@@ -361,5 +361,7 @@ onMounted(() => {
   fetchOverview();
   fetchUnpaid();
   fetchPayments();
-});
+}
+
+onMounted(loadAll);
 </script>
