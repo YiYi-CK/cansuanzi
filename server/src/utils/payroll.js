@@ -76,7 +76,7 @@ function calcShiftWage(shift, employee, settings = {}) {
  */
 async function getPayroll(restaurantId, dateFrom, dateTo) {
   const settings = await db('restaurant_settings').where({ restaurant_id: restaurantId }).first() || {};
-  const employees = await db('employees').where({ restaurant_id: restaurantId, active: true });
+  const employees = await db('employees').where({ restaurant_id: restaurantId });
   const shifts = await db('shifts')
     .where({ restaurant_id: restaurantId })
     .whereBetween('date', [dateFrom, dateTo])
