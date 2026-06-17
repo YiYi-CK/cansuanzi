@@ -9,8 +9,8 @@
           <n-form-item :label="t('report.total_revenue')"><n-input-number v-model:value="form.total_revenue" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
           <n-form-item :label="t('report.cash')"><n-input-number v-model:value="form.total_cash" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
           <n-form-item :label="t('report.card')"><n-input-number v-model:value="form.total_card" :min="0" :step="0.01" :precision="2" style="width: 100%" /></n-form-item>
-          <n-form-item :label="长短款">
-            <n-input :value="diffStr" disabled :style="{ color: diffColor }" />
+          <n-form-item label="长短款">
+            <span :style="{ color: diffColor, fontWeight: 'bold', fontSize: '16px' }">{{ diffStr }}</span>
           </n-form-item>
           <n-form-item :label="t('report.notes')"><n-input v-model:value="form.notes" type="textarea" /></n-form-item>
 
@@ -94,13 +94,16 @@
           <n-date-picker v-model:value="editForm.dateTs" type="date" style="width: 180px" />
         </n-form-item>
         <n-form-item :label="t('report.total_revenue')">
-          <n-input-number v-model:value="editForm.total_revenue" :min="0" :step="0.01" style="width: 100%" />
+          <n-input-number v-model:value="editForm.total_revenue" :min="0" :step="0.01" :precision="2" style="width: 100%" />
         </n-form-item>
         <n-form-item :label="t('report.cash')">
-          <n-input-number v-model:value="editForm.total_cash" :min="0" :step="0.01" style="width: 100%" />
+          <n-input-number v-model:value="editForm.total_cash" :min="0" :step="0.01" :precision="2" style="width: 100%" />
         </n-form-item>
         <n-form-item :label="t('report.card')">
-          <n-input-number v-model:value="editForm.total_card" :min="0" :step="0.01" style="width: 100%" />
+          <n-input-number v-model:value="editForm.total_card" :min="0" :step="0.01" :precision="2" style="width: 100%" />
+        </n-form-item>
+        <n-form-item label="长短款">
+          <span :style="{ color: editDiffColor, fontWeight: 'bold', fontSize: '16px' }">{{ editDiffStr }}</span>
         </n-form-item>
         <n-form-item :label="t('report.notes')">
           <n-input v-model:value="editForm.notes" type="textarea" />
@@ -153,7 +156,7 @@ const form = ref({
   expenses: [{ category: 'food', amount: 0, customName: '' }],
 });
 
-// 长短款 = 总营收 - (现金 + 刷卡)
+// 长短款 = 总营收 - (现金 + 刷卡) — 手动录入
 const diffAmount = computed(() => {
   const rev = Number(form.value.total_revenue) || 0;
   const cash = Number(form.value.total_cash) || 0;
@@ -165,6 +168,19 @@ const diffStr = computed(() => {
   return (v >= 0 ? '+' : '') + v.toFixed(2);
 });
 const diffColor = computed(() => diffAmount.value >= 0 ? '#16A34A' : '#DC2626');
+
+// 长短款 — 编辑弹窗
+const editDiffAmount = computed(() => {
+  const rev = Number(editForm.value.total_revenue) || 0;
+  const cash = Number(editForm.value.total_cash) || 0;
+  const card = Number(editForm.value.total_card) || 0;
+  return rev - cash - card;
+});
+const editDiffStr = computed(() => {
+  const v = editDiffAmount.value;
+  return (v >= 0 ? '+' : '') + v.toFixed(2);
+});
+const editDiffColor = computed(() => editDiffAmount.value >= 0 ? '#16A34A' : '#DC2626');
 
 const expenseCategoryOptions = [
   { label: '食材', value: 'food' },
