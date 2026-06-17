@@ -16,7 +16,7 @@
             <n-space>
               <n-select v-model:value="exp.category" :options="expenseCategoryOptions" style="width: 110px" size="small" />
               <n-input v-if="exp.category === 'other'" v-model:value="exp.customName" placeholder="自定义" :maxlength="20" style="width: 100px" size="small" />
-              <n-input-number v-model:value="exp.amount" :min="0" :step="0.01" style="width: 140px" size="small" />
+              <n-input-number v-model:value="exp.amount" :min="0" :step="0.01" :precision="2" style="width: 140px" size="small" />
               <n-button size="small" @click="form.expenses.splice(i, 1)">×</n-button>
             </n-space>
           </n-form-item>
@@ -108,7 +108,7 @@
           <n-space>
             <n-select v-model:value="exp.category" :options="expenseCategoryOptions" style="width: 110px" size="small" />
             <n-input v-if="exp.category === 'other'" v-model:value="exp.customName" placeholder="自定义" :maxlength="20" style="width: 100px" size="small" />
-            <n-input-number v-model:value="exp.amount" :min="0" :step="0.01" style="width: 140px" size="small" />
+            <n-input-number v-model:value="exp.amount" :min="0" :step="0.01" :precision="2" style="width: 140px" size="small" />
             <n-button size="small" @click="editForm.expenses.splice(i, 1)">×</n-button>
           </n-space>
         </n-form-item>
@@ -228,27 +228,19 @@ async function saveEdit() {
     // 1. 更新日报
     await reportsAPI.posUpdate(editForm.value.id, {
       date,
-      total_revenue: editForm.value.total_revenue,
-      total_cash: editForm.value.total_cash,
-      total_card: editForm.value.total_card,
+      total_revenue: round2(editForm.value.total_revenue),
+      total_cash: round2(editForm.value.total_cash),
+      total_card: round2(editForm.value.total_card),
       notes: editForm.value.notes,
     });
 
-    // 2. 处理支出：删除旧支出 + 创建新支出（最简单的做法）
-    // 先收集已有的支出ID
-    const originalExpenseIds = editForm.value.expenses.filter(e => e._id).map(e => e._id);
-    // 删除不在新列表里的旧支出
+    // 2. 处理支出
     for (const e of editForm.value.expenses) {
+      const desc = e.category === 'other' && e.customName ? e.customName : undefined;
       if (e._id) {
-        // 更新已有支出
-        const desc = e.category === 'other' && e.customName ? e.customName : undefined;
-        await expensesAPI.update(e._id, { date, category: e.category, amount: e.amount, description: desc });
-      } else {
-        // 新增支出
-        if (e.amount > 0) {
-          const desc = e.category === 'other' && e.customName ? e.customName : undefined;
-          await expensesAPI.create({ date, category: e.category, amount: e.amount, description: desc });
-        }
+        await expensesAPI.update(e._id, { date, category: e.category, amount: round2(e.amount), description: desc });
+      } else if (e.amount > 0) {
+        await expensesAPI.create({ date, category: e.category, amount: round2(e.amount), description: desc });
       }
     }
 
@@ -285,15 +277,17 @@ function expenseLabel(cat) {
 }
 
 // 手工录入
+function round2(v) { return Math.round(Number(v) * 100) / 100; }
+
 async function submitManual() {
   saving.value = true;
   try {
     const d = form.value.date ? new Date(form.value.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-    await reportsAPI.posCreate({ date: d, total_revenue: form.value.total_revenue, total_cash: form.value.total_cash, total_card: form.value.total_card, notes: form.value.notes });
+    await reportsAPI.posCreate({ date: d, total_revenue: round2(form.value.total_revenue), total_cash: round2(form.value.total_cash), total_card: round2(form.value.total_card), notes: form.value.notes });
     for (const exp of form.value.expenses) {
       if (exp.amount > 0) {
         const desc = exp.category === 'other' && exp.customName ? exp.customName : undefined;
-        await expensesAPI.create({ date: d, category: exp.category, amount: exp.amount, description: desc });
+        await expensesAPI.create({ date: d, category: exp.category, amount: round2(exp.amount), description: desc });
       }
     }
     message.success(t('report.import_success'));

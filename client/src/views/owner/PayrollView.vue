@@ -6,7 +6,7 @@
       <n-data-table :columns="columns" :data="payroll.employees" :bordered="false" />
       <n-divider />
       <p style="font-size: 13px; color: var(--n-text-color-3)">
-        {{ t('payroll.total') }}: {{ payroll.total_hours }}h — ${{ payroll.total_wage }}
+        {{ t('payroll.total') }}: {{ Number(payroll.total_hours).toFixed(1) }}h — ${{ Number(payroll.total_wage).toFixed(2) }}
         <br />{{ t('payroll.loading_hint') }}
       </p>
     </n-spin>

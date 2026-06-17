@@ -22,7 +22,7 @@
           <n-select v-model:value="form.employment_type" :options="typeOptions" />
         </n-form-item>
         <n-form-item :label="t('employee.hourly_rate')">
-          <n-input-number v-model:value="form.base_hourly_rate" :min="0" :step="1" />
+          <n-input-number v-model:value="form.base_hourly_rate" :min="0" :step="0.01" :precision="2" />
         </n-form-item>
         <n-form-item label="职位">
           <n-select v-model:value="form.position" :options="positionOptions" placeholder="选择职位" filterable tag />
