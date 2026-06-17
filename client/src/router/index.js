@@ -28,7 +28,7 @@ const routes = [
   {
     path: '/',
     component: () => import('../layouts/OwnerLayout.vue'),
-    meta: { requiresAuth: true, role: ['owner', 'manager'] },
+    meta: { requiresAuth: true, role: ['owner'] },
     children: [
       { path: '', redirect: '/dashboard' },
       { path: 'dashboard', name: 'Dashboard', component: () => import('../views/owner/DashboardView.vue') },
@@ -38,6 +38,15 @@ const routes = [
       { path: 'reports/import', name: 'ReportImport', component: () => import('../views/owner/ReportImportView.vue') },
       { path: 'reports/payroll', name: 'Payroll', component: () => import('../views/owner/PayrollView.vue') },
       { path: 'settings', name: 'Settings', component: () => import('../views/owner/SettingsView.vue') },
+    ],
+  },
+  {
+    path: '/manager',
+    component: () => import('../layouts/ManagerLayout.vue'),
+    meta: { requiresAuth: true, role: ['owner', 'manager'] },
+    children: [
+      { path: '', redirect: '/manager/schedule' },
+      { path: 'schedule', name: 'ManagerSchedule', component: () => import('../views/owner/ScheduleView.vue') },
     ],
   },
   {
@@ -64,8 +73,15 @@ router.beforeEach((to, _from, next) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   if (to.meta.requiresAuth && !token) return next('/login');
-  if (to.meta.guest && token) return next('/dashboard');
-  if (to.meta.role && !to.meta.role.some(r => user.role === r)) return next('/my/schedule');
+  if (to.meta.guest && token) {
+    if (user.role === 'manager') return next('/manager/schedule');
+    return next('/dashboard');
+  }
+  if (to.meta.role && !to.meta.role.some(r => user.role === r)) {
+    // 经理重定向到排班页，员工重定向到我的班表
+    if (user.role === 'manager') return next('/manager/schedule');
+    return next('/my/schedule');
+  }
 
   next();
 });
