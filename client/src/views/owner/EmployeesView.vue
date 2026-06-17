@@ -103,7 +103,12 @@ const columns = computed(() => [
   { title: t('employee.type'), key: 'employment_type', render: (row) => t(`employee.${row.employment_type}`) },
   { title: t('employee.hourly_rate'), key: 'base_hourly_rate', render: (row) => '$' + parseFloat(row.base_hourly_rate).toFixed(2) },
   { title: t('employee.status'), key: 'active', render: (row) => h(NTag, { type: row.active ? 'success' : 'error' }, { default: () => row.active ? t('employee.active') : t('employee.inactive') }) },
-  { title: '', key: 'actions', render: (row) => h(NButton, { size: 'small', onClick: () => editEmployee(row) }, { default: () => t('common.edit') }) },
+  { title: '', key: 'actions', render: (row) =>
+    h('span', null, [
+      h(NButton, { size: 'small', style: 'margin-right: 6px', onClick: () => editEmployee(row) }, { default: () => t('common.edit') }),
+      row.active ? h(NButton, { size: 'small', type: 'error', secondary: true, onClick: () => deleteEmployee(row) }, { default: () => t('common.delete') }) : null,
+    ])
+  },
 ]);
 
 async function fetchEmployees() {
@@ -118,6 +123,18 @@ function openNewEmployee() {
   form.value = { name: "", email: "", phone: "", position: "", station_ids: [], employment_type: "casual", base_hourly_rate: 0, password: "" };
   showAdd.value = true;
 }
+async function deleteEmployee(emp) {
+  const confirmed = window.confirm(t('common.delete') + ' ' + emp.name + '?');
+  if (!confirmed) return;
+  try {
+    await employeesAPI.remove(emp.id);
+    message.success(t('common.delete_success'));
+    fetchEmployees();
+  } catch (err) {
+    message.error(err.response?.data?.error || t('common.delete_failed'));
+  }
+}
+
 function editEmployee(emp) {
   editing.value = emp;
   generateTip.value = false;

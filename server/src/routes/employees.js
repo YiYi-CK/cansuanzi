@@ -78,8 +78,11 @@ router.put('/:id', role('owner', 'manager'), async (req, res) => {
   res.json({ ok: true });
 });
 
-/** 禁用员工 (软删除) */
+/** 禁用员工 (软删除) — 不能删自己 */
 router.delete('/:id', role('owner', 'manager'), async (req, res) => {
+  if (parseInt(req.params.id) === req.user.id) {
+    return res.status(400).json({ error: '不能删除自己' });
+  }
   await db('employees').where({ id: req.params.id, restaurant_id: req.restaurantId }).update({ active: false, updated_at: db.fn.now() });
   res.json({ ok: true });
 });
