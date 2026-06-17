@@ -24,7 +24,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
-import { authAPI } from '../api/endpoints';
+import { authAPI } from '../../api/endpoints';
 
 const router = useRouter();
 const message = useMessage();

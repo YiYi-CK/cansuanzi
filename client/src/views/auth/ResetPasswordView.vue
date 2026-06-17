@@ -22,7 +22,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
-import { authAPI } from '../api/endpoints';
+import { authAPI } from '../../api/endpoints';
 
 const route = useRoute();
 const router = useRouter();
